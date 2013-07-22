@@ -1,0 +1,192 @@
+/*
+ * Copyright 2013 Gerrit Meinders
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package lithium.io.ews;
+
+import java.util.*;
+
+/**
+ * An entry in a {@link Schedule}, which provides content and various meta
+ * information.
+ *
+ * @author Gerrit Meinders
+ */
+public class ScheduleEntry
+{
+	private String _title;
+
+	private String _mediaResource;
+
+	private String _author;
+
+	private String _copyright;
+
+	private String _administrator;
+
+	private Date _timestamp;
+
+	private Content _content;
+
+	private Type _type;
+
+	private String _notes;
+
+	private String _songNumber;
+
+	private BinaryContent _embeddedContent;
+
+	private Presentation _presentation;
+
+	/**
+	 * Constructs a new instance.
+	 */
+	public ScheduleEntry()
+	{
+	}
+
+	public String getTitle()
+	{
+		return _title;
+	}
+
+	public void setTitle( final String title )
+	{
+		_title = title;
+	}
+
+	public String getMediaResource()
+	{
+		return _mediaResource;
+	}
+
+	public void setMediaResource( final String mediaResource )
+	{
+		_mediaResource = mediaResource;
+	}
+
+	public String getAuthor()
+	{
+		return _author;
+	}
+
+	public void setAuthor( final String author )
+	{
+		_author = author;
+	}
+
+	public String getCopyright()
+	{
+		return _copyright;
+	}
+
+	public void setCopyright( final String copyright )
+	{
+		_copyright = copyright;
+	}
+
+	public String getAdministrator()
+	{
+		return _administrator;
+	}
+
+	public void setAdministrator( final String administrator )
+	{
+		_administrator = administrator;
+	}
+
+	public Date getTimestamp()
+	{
+		return _timestamp;
+	}
+
+	public void setTimestamp( final Date timestamp )
+	{
+		_timestamp = timestamp;
+	}
+
+	public Content getContent()
+	{
+		return _content;
+	}
+
+	public void setContent( final Content content )
+	{
+		_content = content;
+	}
+
+	public Type getType()
+	{
+		return _type;
+	}
+
+	public void setType( final Type type )
+	{
+		_type = type;
+	}
+
+	public String getNotes()
+	{
+		return _notes;
+	}
+
+	public void setNotes( final String notes )
+	{
+		_notes = notes;
+	}
+
+	public String getSongNumber()
+	{
+		return _songNumber;
+	}
+
+	public void setSongNumber( final String songNumber )
+	{
+		_songNumber = songNumber;
+	}
+
+	public void setEmbeddedContent( final BinaryContent embeddedContent )
+	{
+		_embeddedContent = embeddedContent;
+	}
+
+	public BinaryContent getEmbeddedContent()
+	{
+		return _embeddedContent;
+	}
+
+	public void setPresentation( final Presentation presentation )
+	{
+		_presentation = presentation;
+	}
+
+	public Presentation getPresentation()
+	{
+		return _presentation;
+	}
+
+	public enum Type
+	{
+		UNKNOWN,
+		SONG,
+		SCRIPTURE,
+		PRESENTATION,
+		VIDEO,
+		LIVE_VIDEO,
+		IMAGE,
+		AUDIO,
+		WEB
+	}
+}
