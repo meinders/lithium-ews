@@ -28,7 +28,7 @@ import java.util.zip.*;
  */
 public class EwsWriter
 {
-	private static final int PLAYLIST_ENTRY_LENGTH = 1816;
+	private static final int SCHEDULE_ENTRY_LENGTH = 1816;
 
 	private final OutputStream _out;
 
@@ -49,16 +49,16 @@ public class EwsWriter
 		_charset = charset;
 	}
 
-	public void write( final Schedule playlist )
+	public void write( final Schedule schedule )
 	throws IOException
 	{
-		writeImpl( playlist );
+		writeImpl( schedule );
 	}
 
-	private void writeImpl( final Schedule playlist )
+	private void writeImpl( final Schedule schedule )
 	throws IOException
 	{
-		final List<ScheduleEntry> entries = playlist.getEntries();
+		final List<ScheduleEntry> entries = schedule.getEntries();
 
 		writeString( "EasyWorship Schedule File Version    5" );
 		writeInt( 0x00001a00 );
@@ -67,9 +67,9 @@ public class EwsWriter
 		writeInt( 0 );
 		writeShort( 0x4014 );
 		writeInt( entries.size() );
-		writeShort( PLAYLIST_ENTRY_LENGTH );
+		writeShort( SCHEDULE_ENTRY_LENGTH );
 
-		final int playlistLength = entries.size() * PLAYLIST_ENTRY_LENGTH;
+		final int scheduleLength = entries.size() * SCHEDULE_ENTRY_LENGTH;
 		int cumulativeContentLength = 0;
 
 		for ( final ScheduleEntry entry : entries )
@@ -90,7 +90,7 @@ public class EwsWriter
 			writeZeroes( 262 );
 
 			writeTimestamp( entry.getTimestamp() );
-			final int contentPointer = 62 + playlistLength + cumulativeContentLength;
+			final int contentPointer = 62 + scheduleLength + cumulativeContentLength;
 			writeInt( contentPointer );
 
 			// More unknown fields.
