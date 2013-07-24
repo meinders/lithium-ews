@@ -127,6 +127,15 @@ class Tools
 		return calendar.getTime();
 	}
 
+	static int parseColor( final ByteBuffer buffer )
+	{
+		final int rgba = buffer.getInt();
+		final int bgra = ( rgba & 0x000000ff ) >> 16 |
+		                 ( rgba & 0x00ff0000 ) << 16 |
+		                 ( rgba & 0xff00ff00 );
+		return bgra;
+	}
+
 	static long toLongBE( final byte[] data )
 	{
 		long result = 0;

@@ -189,4 +189,25 @@ public class ScheduleEntry
 		AUDIO,
 		WEB
 	}
+
+	public enum HorizontalAlignment
+	{
+		LEFT,
+		CENTER,
+		RIGHT
+	}
+
+	public enum VerticalAlignment
+	{
+		TOP,
+		CENTER,
+		BOTTOM
+	}
+
+	public enum AspectRatio
+	{
+		MAINTAIN, // Keep aspect ratio, touch frame from inside
+		STRETCH,
+		ZOOM // Keep aspect ratio, touch frame from outside
+	}
 }

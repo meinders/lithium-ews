@@ -16,10 +16,12 @@
  */
 package lithium.io.ews;
 
+import java.awt.*;
 import java.io.*;
 import java.nio.*;
 import java.nio.charset.*;
 import java.util.*;
+import java.util.List;
 import java.util.zip.*;
 
 import static lithium.io.ews.Tools.*;
@@ -109,26 +111,79 @@ public class EwsParser
 		final String copyright = parsePaddedCString( buffer, 101, getCharset() );
 		final String administrator = parsePaddedCString( buffer, 51, getCharset() );
 
-		buffer.position( start + 792 );
+//		System.out.println( "Unknown (510)" );
+//		dump( buffer, 26 );
+		skip( buffer, 26 );
+
+		final String background = parsePaddedCString( buffer, 256, getCharset() );
+//		System.out.println( "Background: \"" + background + "\"" );
+
+//		buffer.position( start + 792 );
 		final Date timestamp = parseTimestamp( buffer );
 
 		final int contentPointer = buffer.getInt();
 
 		buffer.position( start + 820 );
 		final ScheduleEntry.Type type = parseScheduleEntryType( buffer );
-		skip( buffer, 12 );
-
-		/*final int isPresentation = */buffer.getInt();
+//		System.out.println( "Unknown (824)" );
+//		dump( buffer, 16 );
+		skip( buffer, 16 );
 
 		final int presentationLength = buffer.getInt();
 
-		buffer.position( start + 1155 );
+//		System.out.println( "Font settings (844..851), containing unknowns (846..847)" );
+//		dump( buffer, 8 );
+		final boolean customFontSettings = ( buffer.get() != 0 );
+		final boolean fontSizeAutomatic = ( buffer.get() != 0 );
+		skip( buffer, 2 );
+		final int fontSize = buffer.getInt();
+
+		final boolean useDefaultFont = ( buffer.get() != 0 );
+		final String fontName = parsePaddedCString( buffer, 255, getCharset() );
+
+		final boolean foregroundAutomatic = buffer.getInt() == 1;
+		final Color foregroundColor = new Color( parseColor( buffer ), false );
+		final boolean shadowAutomatic = buffer.getInt() == 1;
+		final Color shadowColor = new Color( parseColor( buffer ), false );
+		final boolean outlineAutomatic = buffer.getInt() == 1;
+		final Color outlineColor = new Color( parseColor( buffer ), false );
+
+		final Boolean shadowEnabled = parseTristate( buffer.get() );
+		final Boolean outlineEnabled = parseTristate( buffer.get() );
+		final Boolean boldEnabled = parseTristate( buffer.get() );
+		final Boolean italicEnabled = parseTristate( buffer.get() );
+		final ScheduleEntry.HorizontalAlignment horizontalTextAlignment = parseHorizontalAlignment( buffer.get() );
+		final ScheduleEntry.VerticalAlignment verticalTextAlignment = parseVerticalAlignment( buffer.get() );
+
+		final boolean defaultTextMargins = ( buffer.get() != 0 );
+		final int textMarginLeft = buffer.getInt();
+		final int textMarginTop = buffer.getInt();
+		final int textMarginRight = buffer.getInt();
+		final int textMarginBottom = buffer.getInt();
+
 		final String notes = parsePaddedCString( buffer, 161, getCharset() );
+//		System.out.println( "Unknown (1316)" );
+//		dump( buffer, 94 );
 		skip( buffer, 94 );
 		final String songNumber = parsePaddedCString( buffer, 11, getCharset() );
 
-		buffer.position( start + 1480 );
+//		System.out.println( "Unknown (1421)" );
+//		dump( buffer, 59 );
+		skip( buffer, 59 );
+
 		final int originalResourceLength = buffer.getInt();
+//		System.out.println( "Unknown (1488)" );
+//		dump( buffer, 36 );
+		skip( buffer, 36 );
+
+		final ScheduleEntry.AspectRatio aspectRatio = parseAspectRatio( buffer.getInt() );
+
+//		System.out.println( "Unknown (1524)" );
+//		dump( buffer, 292 );
+		skip( buffer, 292 );
+
+		// index of background for entry 2: 0x001849 = 6217
+		// index of background for entry 3: 0x0207bd = 133053
 
 		final ScheduleEntry result = new ScheduleEntry();
 		result.setTitle( title );
@@ -297,7 +352,7 @@ public class EwsParser
 		return result;
 	}
 
-	private Content parseBinaryContent( ScheduleEntry.Type type, final ByteBuffer buffer )
+	private Content parseBinaryContent( final ScheduleEntry.Type type, final ByteBuffer buffer )
 	{
 		final Content result;
 		final int contentLength = buffer.getInt();
@@ -343,7 +398,6 @@ public class EwsParser
 		buffer.position( buffer.position() - 4 );
 		final int expectedChecksum = buffer.getInt();
 		buffer.order( ByteOrder.LITTLE_ENDIAN );
-
 		buffer.position( buffer.position() + 4 );
 
 		final int decompressedLength = buffer.getInt();
@@ -372,5 +426,71 @@ public class EwsParser
 		final TextContent result = new TextContent();
 		result.setText( content.toString() );
 		return result;
+	}
+
+	private ScheduleEntry.AspectRatio parseAspectRatio( int i )
+	{
+		switch ( i )
+		{
+			case 0:
+				return null;
+			case 1:
+				return ScheduleEntry.AspectRatio.MAINTAIN;
+			case 2:
+				return ScheduleEntry.AspectRatio.STRETCH;
+			case 3:
+				return ScheduleEntry.AspectRatio.ZOOM;
+			default:
+				throw new IllegalArgumentException( String.valueOf( i ) );
+		}
+	}
+
+	private ScheduleEntry.HorizontalAlignment parseHorizontalAlignment( byte b )
+	{
+		switch ( b )
+		{
+			case 0:
+				return ScheduleEntry.HorizontalAlignment.LEFT;
+			case 1:
+				return ScheduleEntry.HorizontalAlignment.CENTER;
+			case 2:
+				return ScheduleEntry.HorizontalAlignment.RIGHT;
+			case 3:
+				return null;
+			default:
+				throw new IllegalArgumentException( String.valueOf( b ) );
+		}
+	}
+
+	private ScheduleEntry.VerticalAlignment parseVerticalAlignment( byte b )
+	{
+		switch ( b )
+		{
+			case 0:
+				return ScheduleEntry.VerticalAlignment.TOP;
+			case 1:
+				return ScheduleEntry.VerticalAlignment.CENTER;
+			case 2:
+				return ScheduleEntry.VerticalAlignment.BOTTOM;
+			case 3:
+				return null;
+			default:
+				throw new IllegalArgumentException( String.valueOf( b ) );
+		}
+	}
+
+	private Boolean parseTristate( final byte b )
+	{
+		switch ( b )
+		{
+			case 0:
+				return Boolean.FALSE;
+			case 1:
+				return Boolean.TRUE;
+			case 2:
+				return null;
+			default:
+				throw new IllegalArgumentException( String.valueOf( b ) );
+		}
 	}
 }

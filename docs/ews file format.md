@@ -42,6 +42,10 @@ Integers types are written as 'int' and the number of bits used, followed by
 either 'le' for little-endian byte order, or 'be' for big-endian. For example,
 'int32le' indicates a 32-bit integer with little-endian byte order.
 
+Colors types are written using as the color components (red, green, blue and
+alpha) in the byte order used in the file. For example 'bgra' for a 4-byte color
+consisting of blue, green, red and alpha, in that order.
+
 Floating point types are written as 'float' and the number of bits used.
 Byte order is always little-endian. For example, 'float32' for a common
 single-precision (32-bit) floating point value.
@@ -133,20 +137,46 @@ Any gaps between fields are filled with null characters.
                                                           0x07 = Image
                                                           0x08 = Audio
                                                           0x09 = Web
-       824  (unknown)                                4    Checksum, maybe?
-                                                          (Why all this checksum anyway? Let the transport layer deal with that.)
+       824  (unknown)                                4
        828  (unknown)              int32le           4    Unknown magic value; occurs at offset 28 in presentation stream (see below)
        836  (unknown)              int32le           4    1 for presentations, 0 otherwise.
        840  Presentation length    int32le           4
 
+       844  Custom font            int8              1    If set, the following font properties apply.
+       845  Font size default      int8              1
+       846  (unknown)                                2    0x00 0x00
+       848  Font size limit        int32le           4    Percentage.
+       852  Default font           int8              1    If set, the default font is used and the specified font name is ignored.
+       853  Font name              string          255
+
+      1108  Foreground automatic   int32le           4    1 = Automatic
+      1112  Foreground color       rgba              4
+      1116  Shadow automatic       int32le           4    1 = Automatic
+      1120  Shadow color           rgba              4
+      1124  Outline automatic      int32le           4    1 = Automatic
+      1128  Outline color          rgba              4
+      1132  Shadow                 int8              1    0x00 = Disabled, 0x01 = Enabled, 0x02 = Default
+      1133  Outline                int8              1    0x00 = Disabled, 0x01 = Enabled, 0x02 = Default
+      1134  Bold                   int8              1    0x00 = Disabled, 0x01 = Enabled, 0x02 = Default
+      1135  Italic                 int8              1    0x00 = Disabled, 0x01 = Enabled, 0x02 = Default
+      1136  Text alignment         int8              1    0x00 = Left, 0x01 = Center, 0x02 = Right, 0x03 = Default
+      1137  Vertical alignment     int8              1    0x00 = Top, 0x01 = Center, 0x02 = Bottom, 0x03 = Default
+
+      1138  Default text margins   int8              1    If set, default margins are used. Otherwise the following properties apply.
+      1139  Text margin left       int32le           4    Percentage
+      1143  Text margin top        int32le           4    Percentage
+      1147  Text margin right      int32le           4    Percentage
+      1151  Text margin bottom     int32le           4    Percentage
+
       1155  Notes                  cstring         160
       1316  (unknown)                               94
       1410  Song number            cstring          10
-      1421  (unknown)                               99
-      1520  Aspect ratio           int32le           4    0x00 = Automatic
-                                                          0x01 = Maintain
-                                                          0x02 = Stretch
-                                                          0x03 = Zoom
+      1421  (unknown)                               59
+      1480  Original length        int32le           4    Length of original "Media resource" (see above). This may be different
+                                                          from the length of the embbedded version of the resource. Images for example
+                                                          are not embedded as-is, but are re-encoded (sometimes doubling in size).
+      1488  (unknown)                               36
+      1520  Aspect ratio           int32le           4    0x00 = Automatic, 0x01 = Maintain, 0x02 = Stretch, 0x03 = Zoom
       1524  (unknown)                              292
 
 
