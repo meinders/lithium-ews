@@ -82,11 +82,10 @@ following schedule entries. The remaining content in the header is unknown.
     --------------------------------------------------------------------------------------------------
 
          0  Filetype           string           38    Specifies the file type and version.
-                                                      E.g. "EasyWorship Schedule File Version    5"
+                                                      "EasyWorship Schedule File Version    5"
 
         56  Entry count        int32le           4    Number of items in the schedule
-        60  Entry length       int16le           2    Length of playlist entries
-                                                      E.g. 0x0718 = 1816
+        60  Entry length       int16le           2    Length of playlist entries: 0x0718 = 1816
 
 The version 3 header is slightly shorter:
 
@@ -94,11 +93,10 @@ The version 3 header is slightly shorter:
     --------------------------------------------------------------------------------------------------
 
          0  Filetype           string           38    Specifies the file type and version.
-                                                      E.g. "EasyWorship Schedule File Version    3"
+                                                      "EasyWorship Schedule File Version    3"
 
         48  Entry count        int32le           4    Number of items in the schedule
-        52  Entry length       int16le           2    Length of playlist entries
-                                                      E.g. 0x0718 = 1816
+        52  Entry length       int16le           2    Length of playlist entries: 0x05f8 = 1528
 
 
 ## Schedule entry
