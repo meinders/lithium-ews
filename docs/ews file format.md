@@ -123,12 +123,35 @@ Any gaps between fields are filled with null characters.
                                                           between parentheses. E.g. "John 3:16 (KJV)"
        358  Copyright              cstring         100    For scripture: Bible version. E.g. "KJV"
        459  Administrator          cstring          50
-       510  (unknown)                               26
-       536  Background             cstring         255    Filename of background image.
+
+       510  (unknown)                                1    0x01
+       511  Default background     int8              1    If set, the following background properties are ignored.
+       512  Background type        int32le           4    0x00 = Color
+                                                          0x01 = Gradient
+                                                          0x02 = Image (tiled)
+                                                          0x03 = Image (scaled)
+                                                          0x04 = Video
+                                                          0x05 = Live video
+       516  Background color       rgba              4
+       520  Gradient color 1       rgba              4
+       524  Gradient color 2       rgba              4
+       528  Gradient style         int8              1    0x00 = Horizontal
+                                                          0x01 = Vertical
+                                                          0x02 = Diagonal up
+                                                          0x03 = Diagonal down
+       529  Gradient variant       int8              1    0x00 = Linear             (i.e. start: color 1, end: color 2)
+                                                          0x01 = Reversed linear    (i.e. start: color 2, end: color 1)
+                                                          0x02 = Bi-linear          (i.e. start/end: color 1, middle: color 2)
+                                                          0x03 = Reversed bi-linear (i.e. start/end: color 2, middle: color 1)
+       530  (unknown)                                6
+       536  Background             cstring         255    Filename of background image or video.
+                                                          For live video, the name of the stream.
                                                           Empty for automatic background.
+
        792  Timestamp              datetime          8    For songs: content creation/modification time
        800  Content pointer        int32le           4    Position of the content for this entry.
                                                           See 'Text content' and 'Binary content' sections for details.
+       804  (unknown)                               16
        820  Content type           int32le           4    0x01 = Song
                                                           0x02 = Scripture
                                                           0x03 = Presentation
@@ -138,12 +161,13 @@ Any gaps between fields are filled with null characters.
                                                           0x08 = Audio
                                                           0x09 = Web
        824  (unknown)                                4
-       828  (unknown)              int32le           4    Unknown magic value; occurs at offset 28 in presentation stream (see below)
-       836  (unknown)              int32le           4    1 for presentations, 0 otherwise.
+       828  (unknown)                                4    Unknown magic value; occurs at offset 28 in presentation stream (see below)
+       832  (unknown)                                4
+       836  (unknown)                                4    First byte is 0x01 for presentations, 0x00 otherwise.
        840  Presentation length    int32le           4
 
        844  Custom font            int8              1    If set, the following font properties apply.
-       845  Font size default      int8              1
+       845  Font size default      int8              1    If set, use default font size. Otherwise use specified font size limit.
        846  (unknown)                                2    0x00 0x00
        848  Font size limit        int32le           4    Percentage.
        852  Default font           int8              1    If set, the default font is used and the specified font name is ignored.

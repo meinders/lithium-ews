@@ -50,6 +50,10 @@ public class ScheduleEntry
 
 	private Presentation _presentation;
 
+	private String _backgroundName;
+
+	private BinaryContent _backgroundImage;
+
 	/**
 	 * Constructs a new instance.
 	 */
@@ -177,6 +181,26 @@ public class ScheduleEntry
 		return _presentation;
 	}
 
+	public void setBackgroundName( final String backgroundName )
+	{
+		_backgroundName = backgroundName;
+	}
+
+	public String getBackgroundName()
+	{
+		return _backgroundName;
+	}
+
+	public void setBackgroundImage( final BinaryContent backgroundImage )
+	{
+		_backgroundImage = backgroundImage;
+	}
+
+	public BinaryContent getBackgroundImage()
+	{
+		return _backgroundImage;
+	}
+
 	public enum Type
 	{
 		UNKNOWN,
@@ -209,5 +233,49 @@ public class ScheduleEntry
 		MAINTAIN, // Keep aspect ratio, touch frame from inside
 		STRETCH,
 		ZOOM // Keep aspect ratio, touch frame from outside
+	}
+
+	public enum BackgroundType
+	{
+		COLOR,
+		GRADIENT,
+		IMAGE_TILED,
+		IMAGE_SCALED,
+		VIDEO,
+		LIVE_VIDEO
+	}
+
+	public enum GradientStyle
+	{
+		HORIZONTAL,
+		VERTICAL,
+		DIAGONAL_UP,
+		DIAGONAL_DOWN
+	}
+
+	/**
+	 * NOTE: Bi-linear is GIMP terminology (though in GIMP the colors are reversed).
+	 */
+	public enum GradientVariant
+	{
+		/**
+		 * Linear gradient: color 1, color 2.
+		 */
+		LINEAR,
+
+		/**
+		 * Reversed linear gradient: color 2, color 1.
+		 */
+		LINEAR_REVERSED,
+
+		/**
+		 * Bi-linear gradient: color 1, color 2, color 1.
+		 */
+		BILINEAR,
+
+		/**
+		 * Reversed bi-linear gradient: color 2, color 1, color 1.
+		 */
+		BILINEAR_REVERSED
 	}
 }

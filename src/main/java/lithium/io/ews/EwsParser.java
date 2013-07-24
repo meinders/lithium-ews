@@ -111,20 +111,31 @@ public class EwsParser
 		final String copyright = parsePaddedCString( buffer, 101, getCharset() );
 		final String administrator = parsePaddedCString( buffer, 51, getCharset() );
 
-//		System.out.println( "Unknown (510)" );
+//		System.out.println( "Background (510..535), containing unknowns (510, 530..535)" );
 //		dump( buffer, 26 );
-		skip( buffer, 26 );
+		skip( buffer, 1 );
+		final boolean defaultBackground = ( buffer.get() != 0 );
+		final ScheduleEntry.BackgroundType backgroundType = parseBackgroundType( buffer.getInt() );
+		final Color backgroundColor = new Color( parseColor( buffer ), false );
+		final Color gradientColor1 = new Color( parseColor( buffer ), false );
+		final Color gradientColor2 = new Color( parseColor( buffer ), false );
+		final ScheduleEntry.GradientStyle gradientStyle = parseGradientStyle( buffer.get() );
+		final ScheduleEntry.GradientVariant gradientVariant = parseGradientVariant( buffer.get() );
+		skip( buffer, 6 );
 
 		final String background = parsePaddedCString( buffer, 256, getCharset() );
 //		System.out.println( "Background: \"" + background + "\"" );
 
-//		buffer.position( start + 792 );
 		final Date timestamp = parseTimestamp( buffer );
 
 		final int contentPointer = buffer.getInt();
 
-		buffer.position( start + 820 );
+//		System.out.println( "Unknown (804)" );
+//		dump( buffer, 16 );
+		skip( buffer, 16 );
+
 		final ScheduleEntry.Type type = parseScheduleEntryType( buffer );
+
 //		System.out.println( "Unknown (824)" );
 //		dump( buffer, 16 );
 		skip( buffer, 16 );
@@ -182,9 +193,6 @@ public class EwsParser
 //		dump( buffer, 292 );
 		skip( buffer, 292 );
 
-		// index of background for entry 2: 0x001849 = 6217
-		// index of background for entry 3: 0x0207bd = 133053
-
 		final ScheduleEntry result = new ScheduleEntry();
 		result.setTitle( title );
 		if ( !mediaResource.isEmpty() )
@@ -231,6 +239,15 @@ public class EwsParser
 		}
 
 		result.setContent( content );
+
+//		System.out.println( "After content:" );
+//		dump( buffer, 100 );
+		if ( !background.isEmpty() )
+		{
+			final BinaryContent backgroundImage = parseBinaryContent( ScheduleEntry.Type.IMAGE, buffer );
+			result.setBackgroundName( background );
+			result.setBackgroundImage( backgroundImage );
+		}
 
 		if ( originalResourceLength > 0 )
 		{
@@ -352,9 +369,8 @@ public class EwsParser
 		return result;
 	}
 
-	private Content parseBinaryContent( final ScheduleEntry.Type type, final ByteBuffer buffer )
+	private BinaryContent parseBinaryContent( final ScheduleEntry.Type type, final ByteBuffer buffer )
 	{
-		final Content result;
 		final int contentLength = buffer.getInt();
 		if ( contentLength < 0 )
 		{
@@ -376,9 +392,9 @@ public class EwsParser
 		// Uncompressed content.
 		final byte[] content = new byte[ contentLength ];
 		buffer.get( content );
-		final BinaryContent binaryContent = new BinaryContent();
-		binaryContent.setBytes( content );
-		result = binaryContent;
+
+		final BinaryContent result = new BinaryContent();
+		result.setBytes( content );
 		return result;
 	}
 
@@ -398,7 +414,10 @@ public class EwsParser
 		buffer.position( buffer.position() - 4 );
 		final int expectedChecksum = buffer.getInt();
 		buffer.order( ByteOrder.LITTLE_ENDIAN );
-		buffer.position( buffer.position() + 4 );
+
+//		System.out.println( "Unknown text content field:" );
+//		dump( buffer, 4 );
+		skip( buffer, 4 );
 
 		final int decompressedLength = buffer.getInt();
 		if ( decompressedLength < 0 )
@@ -422,6 +441,10 @@ public class EwsParser
 		{
 			System.err.println( "WARNING: Checksum error. Expected " + toHex( expectedChecksum ) + ", but was " + toHex( (int)actualChecksum.getValue() ) );
 		}
+
+//		System.out.println( "Unknown text content field:" );
+//		dump( buffer, 2 );
+		skip( buffer, 2 );
 
 		final TextContent result = new TextContent();
 		result.setText( content.toString() );
@@ -489,6 +512,61 @@ public class EwsParser
 				return Boolean.TRUE;
 			case 2:
 				return null;
+			default:
+				throw new IllegalArgumentException( String.valueOf( b ) );
+		}
+	}
+
+	private ScheduleEntry.BackgroundType parseBackgroundType( int i )
+	{
+		switch ( i )
+		{
+			case 0:
+				return ScheduleEntry.BackgroundType.COLOR;
+			case 1:
+				return ScheduleEntry.BackgroundType.GRADIENT;
+			case 2:
+				return ScheduleEntry.BackgroundType.IMAGE_TILED;
+			case 3:
+				return ScheduleEntry.BackgroundType.IMAGE_SCALED;
+			case 4:
+				return ScheduleEntry.BackgroundType.VIDEO;
+			case 5:
+				return ScheduleEntry.BackgroundType.LIVE_VIDEO;
+			default:
+				throw new IllegalArgumentException( String.valueOf( i ) );
+		}
+	}
+
+	private ScheduleEntry.GradientStyle parseGradientStyle( byte b )
+	{
+		switch ( b )
+		{
+			case 0:
+				return ScheduleEntry.GradientStyle.HORIZONTAL;
+			case 1:
+				return ScheduleEntry.GradientStyle.VERTICAL;
+			case 2:
+				return ScheduleEntry.GradientStyle.DIAGONAL_UP;
+			case 3:
+				return ScheduleEntry.GradientStyle.DIAGONAL_DOWN;
+			default:
+				throw new IllegalArgumentException( String.valueOf( b ) );
+		}
+	}
+
+	private ScheduleEntry.GradientVariant parseGradientVariant( byte b )
+	{
+		switch ( b )
+		{
+			case 0:
+				return ScheduleEntry.GradientVariant.LINEAR;
+			case 1:
+				return ScheduleEntry.GradientVariant.LINEAR_REVERSED;
+			case 2:
+				return ScheduleEntry.GradientVariant.BILINEAR;
+			case 3:
+				return ScheduleEntry.GradientVariant.BILINEAR_REVERSED;
 			default:
 				throw new IllegalArgumentException( String.valueOf( b ) );
 		}
