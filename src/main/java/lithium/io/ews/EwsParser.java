@@ -54,7 +54,35 @@ public class EwsParser
 	{
 		buffer.order( ByteOrder.LITTLE_ENDIAN );
 
-		buffer.position( 56 );
+		final String scheduleFormatIdentifier = parsePaddedCString( buffer, 34, getCharset() );
+		if ( !scheduleFormatIdentifier.startsWith( "EasyWorship Schedule File" ) )
+		{
+			throw new IllegalArgumentException( "Not an EasyWorship schedule file." );
+		}
+
+		final String scheduleFormatVersionString = parsePaddedCString( buffer, 5, getCharset() );
+		int scheduleFormatVersion = -1;
+		try
+		{
+			scheduleFormatVersion = Integer.parseInt( scheduleFormatVersionString.trim() );
+		}
+		catch ( NumberFormatException ignored )
+		{
+		}
+
+		if ( scheduleFormatVersion == 5 )
+		{
+			skip( buffer, 19 );
+		}
+		else if ( scheduleFormatVersion == 3 )
+		{
+			skip( buffer, 11 );
+		}
+		else
+		{
+			throw new IllegalArgumentException( "Unsupported version: '" + scheduleFormatVersionString + "'" );
+		}
+
 		final int playlistEntryCount = buffer.getInt();
 		final int playlistEntryLength = (int)buffer.getShort();
 

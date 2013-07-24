@@ -88,6 +88,18 @@ following schedule entries. The remaining content in the header is unknown.
         60  Entry length       int16le           2    Length of playlist entries
                                                       E.g. 0x0718 = 1816
 
+The version 3 header is slightly shorter:
+
+    Offset  Field              Data type    Length    Details
+    --------------------------------------------------------------------------------------------------
+
+         0  Filetype           string           38    Specifies the file type and version.
+                                                      E.g. "EasyWorship Schedule File Version    3"
+
+        48  Entry count        int32le           4    Number of items in the schedule
+        52  Entry length       int16le           2    Length of playlist entries
+                                                      E.g. 0x0718 = 1816
+
 
 ## Schedule entry
 
