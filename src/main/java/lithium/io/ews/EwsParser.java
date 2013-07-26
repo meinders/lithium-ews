@@ -123,8 +123,7 @@ public class EwsParser
 		final ScheduleEntry.GradientVariant gradientVariant = parseGradientVariant( buffer.get() );
 		skip( buffer, 6 );
 
-		final String background = parsePaddedCString( buffer, 256, getCharset() );
-//		System.out.println( "Background: \"" + background + "\"" );
+		final String backgroundName = parsePaddedCString( buffer, 256, getCharset() );
 
 		final Date timestamp = parseTimestamp( buffer );
 
@@ -240,13 +239,78 @@ public class EwsParser
 
 		result.setContent( content );
 
-//		System.out.println( "After content:" );
-//		dump( buffer, 100 );
-		if ( !background.isEmpty() )
+		if ( !defaultBackground )
 		{
-			final BinaryContent backgroundImage = parseBinaryContent( ScheduleEntry.Type.IMAGE, buffer );
-			result.setBackgroundName( background );
-			result.setBackgroundImage( backgroundImage );
+			final Background background;
+
+			if ( backgroundType == ScheduleEntry.BackgroundType.COLOR )
+			{
+				final ColorBackground colorBackground = new ColorBackground();
+				background = colorBackground;
+				colorBackground.setColor( backgroundColor );
+			}
+			else if ( backgroundType == ScheduleEntry.BackgroundType.GRADIENT )
+			{
+				final GradientBackground gradientBackground = new GradientBackground();
+				background = gradientBackground;
+				gradientBackground.setColor1( gradientColor1 );
+				gradientBackground.setColor2( gradientColor2 );
+				gradientBackground.setStyle( gradientStyle );
+				gradientBackground.setVariant( gradientVariant );
+			}
+			else if ( backgroundType == ScheduleEntry.BackgroundType.IMAGE_TILED || backgroundType == ScheduleEntry.BackgroundType.IMAGE_SCALED )
+			{
+				final ImageBackground imageBackground = new ImageBackground();
+				background = imageBackground;
+				imageBackground.setName( backgroundName );
+
+				if ( !backgroundName.isEmpty() )
+				{
+					final BinaryContent backgroundImage = parseBinaryContent( ScheduleEntry.Type.IMAGE, buffer );
+					imageBackground.setImage( backgroundImage );
+				}
+
+				imageBackground.setTiled( backgroundType == ScheduleEntry.BackgroundType.IMAGE_TILED );
+
+				if ( backgroundType == ScheduleEntry.BackgroundType.IMAGE_SCALED )
+				{
+					imageBackground.setAspectRatio( aspectRatio );
+				}
+			}
+			else if ( backgroundType == ScheduleEntry.BackgroundType.VIDEO )
+			{
+				final VideoBackground videoBackground = new VideoBackground();
+				background = videoBackground;
+				videoBackground.setName( backgroundName );
+
+				if ( !backgroundName.isEmpty() )
+				{
+					final BinaryContent previewImage = parseBinaryContent( ScheduleEntry.Type.IMAGE, buffer );
+					videoBackground.setImage( previewImage );
+				}
+
+				if ( backgroundType == ScheduleEntry.BackgroundType.IMAGE_SCALED )
+				{
+					videoBackground.setAspectRatio( aspectRatio );
+				}
+			}
+			else if ( backgroundType == ScheduleEntry.BackgroundType.LIVE_VIDEO )
+			{
+				final LiveVideoBackground liveVideoBackground = new LiveVideoBackground();
+				background = liveVideoBackground;
+				liveVideoBackground.setName( backgroundName );
+
+				if ( backgroundType == ScheduleEntry.BackgroundType.IMAGE_SCALED )
+				{
+					liveVideoBackground.setAspectRatio( aspectRatio );
+				}
+			}
+			else
+			{
+				throw new IllegalArgumentException( "Unsupported background type: " + backgroundType );
+			}
+
+			result.setBackground( background );
 		}
 
 		if ( originalResourceLength > 0 )

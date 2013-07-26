@@ -50,9 +50,7 @@ public class ScheduleEntry
 
 	private Presentation _presentation;
 
-	private String _backgroundName;
-
-	private BinaryContent _backgroundImage;
+	private Background _background;
 
 	/**
 	 * Constructs a new instance.
@@ -181,24 +179,14 @@ public class ScheduleEntry
 		return _presentation;
 	}
 
-	public void setBackgroundName( final String backgroundName )
+	public void setBackground( final Background background )
 	{
-		_backgroundName = backgroundName;
+		_background = background;
 	}
 
-	public String getBackgroundName()
+	public Background getBackground()
 	{
-		return _backgroundName;
-	}
-
-	public void setBackgroundImage( final BinaryContent backgroundImage )
-	{
-		_backgroundImage = backgroundImage;
-	}
-
-	public BinaryContent getBackgroundImage()
-	{
-		return _backgroundImage;
+		return _background;
 	}
 
 	public enum Type
