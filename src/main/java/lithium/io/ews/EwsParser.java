@@ -62,23 +62,19 @@ public class EwsParser
 			throw new IllegalArgumentException( "Not an EasyWorship schedule file." );
 		}
 
-		final String scheduleFormatVersionString = parsePaddedCString( buffer, 5, getCharset() );
-		int scheduleFormatVersion = -1;
-		try
-		{
-			scheduleFormatVersion = Integer.parseInt( scheduleFormatVersionString.trim() );
-		}
-		catch ( NumberFormatException ignored )
-		{
-		}
+		final String scheduleFormatVersionString = parsePaddedCString( buffer, 5, getCharset() ).trim();
 
-		if ( scheduleFormatVersion == 5 )
+		if ( "5".equals( scheduleFormatVersionString ) )
 		{
 			skip( buffer, 19 );
 		}
-		else if ( scheduleFormatVersion == 3 )
+		else if ( "3".equals( scheduleFormatVersionString ) )
 		{
 			skip( buffer, 11 );
+		}
+		else if ( "1.6".equals( scheduleFormatVersionString ) )
+		{
+			skip( buffer, 3 );
 		}
 		else
 		{
@@ -146,55 +142,65 @@ public class EwsParser
 		final boolean customFontSettings = ( buffer.get() != 0 );
 		final boolean fontSizeAutomatic = ( buffer.get() != 0 );
 		skip( buffer, 2 );
-		final int fontSize = buffer.getInt();
 
-		final boolean useDefaultFont = ( buffer.get() != 0 );
-		final String fontName = parsePaddedCString( buffer, 255, getCharset() );
+		String notes = null;
+		String songNumber = null;
+		int mediaContentPointer = 0;
+		ScheduleEntry.AspectRatio aspectRatio = null;
+		int originalResourceLength = 0;
 
-		final boolean foregroundAutomatic = buffer.getInt() == 1;
-		final Color foregroundColor = new Color( parseColor( buffer ), false );
-		final boolean shadowAutomatic = buffer.getInt() == 1;
-		final Color shadowColor = new Color( parseColor( buffer ), false );
-		final boolean outlineAutomatic = buffer.getInt() == 1;
-		final Color outlineColor = new Color( parseColor( buffer ), false );
+		if ( size > 848 )
+		{
+			final int fontSize = buffer.getInt();
 
-		final Boolean shadowEnabled = parseTristate( buffer.get() );
-		final Boolean outlineEnabled = parseTristate( buffer.get() );
-		final Boolean boldEnabled = parseTristate( buffer.get() );
-		final Boolean italicEnabled = parseTristate( buffer.get() );
-		final ScheduleEntry.HorizontalAlignment horizontalTextAlignment = parseHorizontalAlignment( buffer.get() );
-		final ScheduleEntry.VerticalAlignment verticalTextAlignment = parseVerticalAlignment( buffer.get() );
+			final boolean useDefaultFont = ( buffer.get() != 0 );
+			final String fontName = parsePaddedCString( buffer, 255, getCharset() );
 
-		final boolean defaultTextMargins = ( buffer.get() != 0 );
-		final int textMarginLeft = buffer.getInt();
-		final int textMarginTop = buffer.getInt();
-		final int textMarginRight = buffer.getInt();
-		final int textMarginBottom = buffer.getInt();
+			final boolean foregroundAutomatic = buffer.getInt() == 1;
+			final Color foregroundColor = new Color( parseColor( buffer ), false );
+			final boolean shadowAutomatic = buffer.getInt() == 1;
+			final Color shadowColor = new Color( parseColor( buffer ), false );
+			final boolean outlineAutomatic = buffer.getInt() == 1;
+			final Color outlineColor = new Color( parseColor( buffer ), false );
 
-		final String notes = parsePaddedCString( buffer, 161, getCharset() );
-//		System.out.println( "Unknown (1316)" );
-//		dump( buffer, 94 );
-		skip( buffer, 94 );
-		final String songNumber = parsePaddedCString( buffer, 11, getCharset() );
+			final Boolean shadowEnabled = parseTristate( buffer.get() );
+			final Boolean outlineEnabled = parseTristate( buffer.get() );
+			final Boolean boldEnabled = parseTristate( buffer.get() );
+			final Boolean italicEnabled = parseTristate( buffer.get() );
+			final ScheduleEntry.HorizontalAlignment horizontalTextAlignment = parseHorizontalAlignment( buffer.get() );
+			final ScheduleEntry.VerticalAlignment verticalTextAlignment = parseVerticalAlignment( buffer.get() );
 
-//		System.out.println( "Unknown (1421)" );
-//		dump( buffer, 59 );
-		skip( buffer, 59 );
+			final boolean defaultTextMargins = ( buffer.get() != 0 );
+			final int textMarginLeft = buffer.getInt();
+			final int textMarginTop = buffer.getInt();
+			final int textMarginRight = buffer.getInt();
+			final int textMarginBottom = buffer.getInt();
 
-		final int originalResourceLength = buffer.getInt();
-//		System.out.println( "Unknown (1484)" );
-//		dump( buffer, 12 );
-		skip( buffer, 12 );
-		final int mediaContentPointer = buffer.getInt();
-//		System.out.println( "Unknown (1500)" );
-//		dump( buffer, 20 );
-		skip( buffer, 20 );
+			notes = parsePaddedCString( buffer, 161, getCharset() );
+//			System.out.println( "Unknown (1316)" );
+//			dump( buffer, 94 );
+			skip( buffer, 94 );
+			songNumber = parsePaddedCString( buffer, 11, getCharset() );
 
-		final ScheduleEntry.AspectRatio aspectRatio = parseAspectRatio( buffer.getInt() );
+//			System.out.println( "Unknown (1421)" );
+//			dump( buffer, 59 );
+			skip( buffer, 59 );
 
-//		System.out.println( "Unknown (1524)" );
-//		dump( buffer, 292 );
-		skip( buffer, 292 );
+			originalResourceLength = buffer.getInt();
+//			System.out.println( "Unknown (1484)" );
+//			dump( buffer, 12 );
+			skip( buffer, 12 );
+			mediaContentPointer = buffer.getInt();
+//			System.out.println( "Unknown (1500)" );
+//			dump( buffer, 20 );
+			skip( buffer, 20 );
+
+			aspectRatio = parseAspectRatio( buffer.getInt() );
+
+//			System.out.println( "Unknown (1524)" );
+//			dump( buffer, 292 );
+			skip( buffer, 292 );
+		}
 
 		final ScheduleEntry result = new ScheduleEntry();
 		result.setTitle( title );

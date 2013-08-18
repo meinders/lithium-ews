@@ -82,6 +82,8 @@ can simply be copied from an arbitrary schedule file.
 The header specifies the file format and version, as well as the layout of the
 following schedule entries. The remaining content in the header is unknown.
 
+For version 5, the header is as follows.
+
     Offset  Field              Data type    Length    Details
     --------------------------------------------------------------------------------------------------
 
@@ -89,9 +91,9 @@ following schedule entries. The remaining content in the header is unknown.
                                                       "EasyWorship Schedule File Version    5"
 
         56  Entry count        int32le           4    Number of items in the schedule
-        60  Entry length       int16le           2    Length of playlist entries: 0x0718 = 1816
+        60  Entry length       int16le           2    Length of schedule entries: 0x0718 = 1816
 
-The version 3 header is slightly shorter:
+For version 3, the header is as follows.
 
     Offset  Field              Data type    Length    Details
     --------------------------------------------------------------------------------------------------
@@ -100,7 +102,18 @@ The version 3 header is slightly shorter:
                                                       "EasyWorship Schedule File Version    3"
 
         48  Entry count        int32le           4    Number of items in the schedule
-        52  Entry length       int16le           2    Length of playlist entries: 0x05f8 = 1528
+        52  Entry length       int16le           2    Length of schedule entries: 0x05f8 = 1528
+
+For version 1.6, the header is as follows.
+
+    Offset  Field              Data type    Length    Details
+    --------------------------------------------------------------------------------------------------
+
+         0  Filetype           string           38    Specifies the file type and version.
+                                                      "EasyWorship Schedule File Version  1.6"
+
+        40  Entry count        int32le           4    Number of items in the schedule
+        44  Entry length       int16le           2    Length of schedule entries: 0x0350 = 848
 
 
 ## Schedule entry
