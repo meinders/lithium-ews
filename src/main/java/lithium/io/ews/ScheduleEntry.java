@@ -46,11 +46,11 @@ public class ScheduleEntry
 
 	private String _songNumber;
 
-	private BinaryContent _embeddedContent;
-
 	private Presentation _presentation;
 
 	private Background _background;
+
+	private BinaryContent _thumbnailImage;
 
 	/**
 	 * Constructs a new instance.
@@ -159,16 +159,6 @@ public class ScheduleEntry
 		_songNumber = songNumber;
 	}
 
-	public void setEmbeddedContent( final BinaryContent embeddedContent )
-	{
-		_embeddedContent = embeddedContent;
-	}
-
-	public BinaryContent getEmbeddedContent()
-	{
-		return _embeddedContent;
-	}
-
 	public void setPresentation( final Presentation presentation )
 	{
 		_presentation = presentation;
@@ -187,6 +177,16 @@ public class ScheduleEntry
 	public Background getBackground()
 	{
 		return _background;
+	}
+
+	public void setThumbnailImage( BinaryContent thumbnailImage )
+	{
+		_thumbnailImage = thumbnailImage;
+	}
+
+	public BinaryContent getThumbnailImage()
+	{
+		return _thumbnailImage;
 	}
 
 	public enum Type

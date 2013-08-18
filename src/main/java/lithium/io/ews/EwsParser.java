@@ -182,9 +182,13 @@ public class EwsParser
 		skip( buffer, 59 );
 
 		final int originalResourceLength = buffer.getInt();
-//		System.out.println( "Unknown (1488)" );
-//		dump( buffer, 36 );
-		skip( buffer, 36 );
+//		System.out.println( "Unknown (1484)" );
+//		dump( buffer, 12 );
+		skip( buffer, 12 );
+		final int mediaContentPointer = buffer.getInt();
+//		System.out.println( "Unknown (1500)" );
+//		dump( buffer, 20 );
+		skip( buffer, 20 );
 
 		final ScheduleEntry.AspectRatio aspectRatio = parseAspectRatio( buffer.getInt() );
 
@@ -215,29 +219,37 @@ public class EwsParser
 		result.setNotes( notes );
 		result.setSongNumber( songNumber );
 
-		final Content content;
 		buffer.position( contentPointer );
 
 		if ( ( type == ScheduleEntry.Type.SONG ) ||
 		     ( type == ScheduleEntry.Type.SCRIPTURE ) )
 		{
-			content = parseDeflatedTextContent( buffer );
+			final TextContent content = parseDeflatedTextContent( buffer );
+			result.setContent( content );
+		}
+		else if ( type == ScheduleEntry.Type.VIDEO )
+		{
+			final BinaryContent content = parseBinaryContent( ScheduleEntry.Type.IMAGE, buffer );
+			result.setThumbnailImage( content );
+
+			if ( mediaContentPointer > 0 )
+			{
+				final int position = buffer.position();
+				buffer.position( mediaContentPointer );
+				final BinaryContent mediaContent = parseBinaryContent( type, buffer );
+				result.setContent( mediaContent );
+				buffer.position( position );
+			}
 		}
 		else if ( ( type == ScheduleEntry.Type.PRESENTATION ) ||
-		          ( type == ScheduleEntry.Type.VIDEO ) ||
 		          ( type == ScheduleEntry.Type.LIVE_VIDEO ) ||
 		          ( type == ScheduleEntry.Type.IMAGE ) ||
 		          ( type == ScheduleEntry.Type.AUDIO ) ||
 		          ( type == ScheduleEntry.Type.WEB ) )
 		{
-			content = parseBinaryContent( type, buffer );
+			final BinaryContent content = parseBinaryContent( type, buffer );
+			result.setContent( content );
 		}
-		else
-		{
-			content = null;
-		}
-
-		result.setContent( content );
 
 		if ( !defaultBackground )
 		{
@@ -287,6 +299,15 @@ public class EwsParser
 				{
 					final BinaryContent previewImage = parseBinaryContent( ScheduleEntry.Type.IMAGE, buffer );
 					videoBackground.setImage( previewImage );
+
+					if ( mediaContentPointer > 0 )
+					{
+						final int position = buffer.position();
+						buffer.position( mediaContentPointer );
+						final BinaryContent video = parseBinaryContent( ScheduleEntry.Type.VIDEO, buffer );
+						videoBackground.setVideo( video );
+						buffer.position( position );
+					}
 				}
 
 				if ( backgroundType == ScheduleEntry.BackgroundType.IMAGE_SCALED )
@@ -322,27 +343,6 @@ public class EwsParser
 				presentationBuffer.limit( presentationLength );
 				final Presentation presentation = parsePresentation( presentationBuffer );
 				result.setPresentation( presentation );
-			}
-			else
-			{
-				final int embeddedResourceLength = buffer.getInt();
-				if ( embeddedResourceLength > 0 )
-				{
-					if ( type == ScheduleEntry.Type.VIDEO )
-					{
-						final int unknown = buffer.getInt();
-						if ( unknown != 0 )
-						{
-							System.err.println( "Unexpected embedded video content. Expected 0, but was " + unknown );
-						}
-					}
-
-					final byte[] embeddedResource = new byte[ embeddedResourceLength ];
-					buffer.get( embeddedResource );
-					final BinaryContent binaryContent = new BinaryContent();
-					binaryContent.setBytes( embeddedResource );
-					result.setEmbeddedContent( binaryContent );
-				}
 			}
 		}
 
@@ -444,7 +444,8 @@ public class EwsParser
 		/*
 		 * Some types have 4 additional zero bytes. Don't know why.
 		 */
-		if ( type == ScheduleEntry.Type.PRESENTATION )
+		if ( type == ScheduleEntry.Type.VIDEO ||
+		     type == ScheduleEntry.Type.PRESENTATION )
 		{
 			final int unknown = buffer.getInt();
 			if ( unknown != 0 )
@@ -528,7 +529,8 @@ public class EwsParser
 			case 3:
 				return ScheduleEntry.AspectRatio.ZOOM;
 			default:
-				throw new IllegalArgumentException( String.valueOf( i ) );
+				System.err.println( "Unsupported aspect ratio: " + i + " (using default instead)" );
+				return null;
 		}
 	}
 

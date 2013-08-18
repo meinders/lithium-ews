@@ -124,7 +124,7 @@ Any gaps between fields are filled with null characters.
        358  Copyright              cstring         100    For scripture: Bible version. E.g. "KJV"
        459  Administrator          cstring          50
 
-       510  (unknown)                                1    0x01
+       510  Background color set   int8              1    If set, the following background color and gradient properties are set.
        511  Default background     int8              1    If set, the following background properties are ignored.
        512  Background type        int32le           4    0x00 = Color
                                                           0x01 = Gradient
@@ -195,12 +195,20 @@ Any gaps between fields are filled with null characters.
       1155  Notes                  cstring         160
       1316  (unknown)                               94
       1410  Song number            cstring          10
-      1421  (unknown)                               59
-      1480  Original length        int32le           4    Length of original "Media resource" (see above). This may be different
+      1421  (unknown)                                1
+      1422  Media embedded         int8              1    If set, media (specifically videos) are embedded. This does not appear
+                                                          specific for this schedule entry. All entries have the same value.
+                                                          Whether this entry has any embedded content (and where) can be derived
+                                                          from the value of the media content pointer (see below).
+      1423  (unknown)                               57
+      1480  Media original length  int32le           4    Length of original "Media resource" (see above). This may be different
                                                           from the length of the embbedded version of the resource. Images for example
                                                           are not embedded as-is, but are re-encoded (sometimes doubling in size).
-      1488  (unknown)                               36
+      1484  (unknown)                               12
+      1496  Media content pointer  int32le           4    Position of embedded media resource.
+      1500  (unknown)                               20
       1520  Aspect ratio           int32le           4    0x00 = Automatic, 0x01 = Maintain, 0x02 = Stretch, 0x03 = Zoom
+                                                          Applies to media content as well as media backgrounds.
       1524  (unknown)                              292
 
 

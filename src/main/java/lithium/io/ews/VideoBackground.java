@@ -34,13 +34,18 @@ public class VideoBackground
 	private BinaryContent _image;
 
 	/**
+	 * Video used as a background, if embedded.
+	 */
+	private BinaryContent _video;
+
+	/**
 	 * Constructs a new instance.
 	 */
 	public VideoBackground()
 	{
 	}
 
-	public void setName( String name )
+	public void setName( final String name )
 	{
 		_name = name;
 	}
@@ -50,7 +55,7 @@ public class VideoBackground
 		return _name;
 	}
 
-	public void setAspectRatio( ScheduleEntry.AspectRatio aspectRatio )
+	public void setAspectRatio( final ScheduleEntry.AspectRatio aspectRatio )
 	{
 		_aspectRatio = aspectRatio;
 	}
@@ -60,7 +65,7 @@ public class VideoBackground
 		return _aspectRatio;
 	}
 
-	public void setImage( BinaryContent image )
+	public void setImage( final BinaryContent image )
 	{
 		_image = image;
 	}
@@ -68,5 +73,15 @@ public class VideoBackground
 	public BinaryContent getImage()
 	{
 		return _image;
+	}
+
+	public void setVideo( final BinaryContent video )
+	{
+		_video = video;
+	}
+
+	public BinaryContent getVideo()
+	{
+		return _video;
 	}
 }
