@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Gerrit Meinders
+ * Copyright 2013-2014 Gerrit Meinders
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -183,8 +183,12 @@ class Tools
 	static byte[] loadResource( final Class<?> context, final String name )
 	throws IOException
 	{
-		final ClassLoader classLoader = context.getClassLoader();
-		final InputStream in = classLoader.getResourceAsStream( name );
+		final InputStream in = context.getResourceAsStream( name );
+		if ( in == null )
+		{
+			throw new FileNotFoundException( name + " (from " + context + ")" );
+		}
+
 		try
 		{
 			return load( in );
@@ -198,8 +202,12 @@ class Tools
 	static byte[] loadResource( final Class<?> context, final String name, final int limit )
 	throws IOException
 	{
-		final ClassLoader classLoader = context.getClassLoader();
-		final InputStream in = classLoader.getResourceAsStream( name );
+		final InputStream in = context.getResourceAsStream( name );
+		if ( in == null )
+		{
+			throw new FileNotFoundException( name + " (from " + context + ")" );
+		}
+
 		try
 		{
 			return load( in, limit );
