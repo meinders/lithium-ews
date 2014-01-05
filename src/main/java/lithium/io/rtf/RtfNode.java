@@ -15,40 +15,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package lithium.io.ews;
-
-import lithium.io.rtf.*;
+package lithium.io.rtf;
 
 /**
- * Text content, e.g. songs or scripture, typically with RTF markup.
+ * Interface for nodes in an RTF document tree.
  *
  * @author Gerrit Meinders
  */
-public class TextContent
-implements Content
+public interface RtfNode
 {
-	private RtfGroup _text;
+	RtfGroup getParent();
 
-	/**
-	 * Constructs a new instance.
-	 */
-	public TextContent()
-	{
-	}
+	void setParent( RtfGroup parent );
 
-	public RtfGroup getText()
-	{
-		return _text;
-	}
-
-	public void setText( final RtfGroup text )
-	{
-		_text = text;
-	}
-
-	@Override
-	public String toString()
-	{
-		return super.toString();
-	}
+	void accept( RtfVisitor visitor );
 }

@@ -14,41 +14,34 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-package lithium.io.ews;
-
-import lithium.io.rtf.*;
+package lithium.io.rtf;
 
 /**
- * Text content, e.g. songs or scripture, typically with RTF markup.
+ * Visitor for RTF documents.
  *
  * @author Gerrit Meinders
  */
-public class TextContent
-implements Content
+public interface RtfVisitor
 {
-	private RtfGroup _text;
+	enum VisitResult {
+		/**
+		 * Continue visiting nodes, including nested nodes.
+		 */
+		CONTINUE,
 
-	/**
-	 * Constructs a new instance.
-	 */
-	public TextContent()
-	{
+		/**
+		 * Skip any nodes nested under the current node.
+		 */
+		SKIP_SUBTREE,
 	}
 
-	public RtfGroup getText()
-	{
-		return _text;
-	}
+	void visitText( TextNode text );
 
-	public void setText( final RtfGroup text )
-	{
-		_text = text;
-	}
+	void visitControlWord( ControlWord controlWord );
 
-	@Override
-	public String toString()
-	{
-		return super.toString();
-	}
+	void visitControlSymbol( ControlSymbol controlSymbol );
+
+	VisitResult groupStart( RtfGroup group );
+
+	void groupEnd( RtfGroup group );
 }

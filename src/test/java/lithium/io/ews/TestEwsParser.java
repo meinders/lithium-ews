@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Gerrit Meinders
+ * Copyright 2013-2014 Gerrit Meinders
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@ import java.nio.charset.*;
 import java.util.*;
 
 import junit.framework.*;
+import lithium.io.rtf.*;
 
 /**
  * Test case for {@link EwsParser}.
@@ -106,7 +107,7 @@ extends TestCase
 			assertTrue( "Expected text content, but was: " + content, content instanceof TextContent );
 
 			final TextContent textContent = (TextContent)content;
-			assertEquals( "Entry " + i + ": unexpected content.", expectedContents[ i ], textContent.getText() );
+			assertEquals( "Entry " + i + ": unexpected content.", expectedContents[ i ], RtfWriter.writeToString( textContent.getText() ) );
 		}
 	}
 }

@@ -15,40 +15,38 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package lithium.io.ews;
-
-import lithium.io.rtf.*;
+package lithium.io.rtf;
 
 /**
- * Text content, e.g. songs or scripture, typically with RTF markup.
+ * RTF control symbol.
  *
  * @author Gerrit Meinders
  */
-public class TextContent
-implements Content
+public class ControlSymbol
+	extends AbstractRtfNode
 {
-	private RtfGroup _text;
+	private char _symbol;
 
 	/**
 	 * Constructs a new instance.
 	 */
-	public TextContent()
+	public ControlSymbol()
 	{
 	}
 
-	public RtfGroup getText()
+	public void setSymbol( char symbol )
 	{
-		return _text;
+		_symbol = symbol;
 	}
 
-	public void setText( final RtfGroup text )
+	public char getSymbol()
 	{
-		_text = text;
+		return _symbol;
 	}
 
 	@Override
-	public String toString()
+	public void accept( final RtfVisitor visitor )
 	{
-		return super.toString();
+		visitor.visitControlSymbol( this );
 	}
 }

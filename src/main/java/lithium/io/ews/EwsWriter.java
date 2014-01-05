@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Gerrit Meinders
+ * Copyright 2013-2014 Gerrit Meinders
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,8 @@ import java.io.*;
 import java.nio.charset.*;
 import java.util.*;
 import java.util.zip.*;
+
+import lithium.io.rtf.*;
 
 /**
  * Writes schedules in the EWS file format.
@@ -138,8 +140,7 @@ public class EwsWriter
 			if ( content instanceof TextContent )
 			{
 				final TextContent textContent = (TextContent)content;
-				final String text = textContent.getText();
-				final byte[] bytes = text.getBytes( getCharset() );
+				final byte[] bytes = RtfWriter.writeToBytes( textContent.getText() );
 
 				final ByteArrayOutputStream compressedOut = new ByteArrayOutputStream();
 				final DeflaterOutputStream deflaterOut = new DeflaterOutputStream( compressedOut );
@@ -165,8 +166,7 @@ public class EwsWriter
 			if ( content instanceof TextContent )
 			{
 				final TextContent textContent = (TextContent)content;
-				final String text = textContent.getText();
-				final byte[] bytes = text.getBytes( getCharset() );
+				final byte[] bytes = RtfWriter.writeToBytes( textContent.getText() );
 
 				final ByteArrayOutputStream compressedOut = new ByteArrayOutputStream();
 				final DeflaterOutputStream deflaterOut = new DeflaterOutputStream( compressedOut );

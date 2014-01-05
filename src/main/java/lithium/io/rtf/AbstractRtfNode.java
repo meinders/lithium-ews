@@ -14,41 +14,32 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-package lithium.io.ews;
-
-import lithium.io.rtf.*;
+package lithium.io.rtf;
 
 /**
- * Text content, e.g. songs or scripture, typically with RTF markup.
+ * Implements methods common to all RTF nodes.
  *
  * @author Gerrit Meinders
  */
-public class TextContent
-implements Content
+public abstract class AbstractRtfNode
+	implements RtfNode
 {
-	private RtfGroup _text;
+	private RtfGroup _parent;
 
 	/**
 	 * Constructs a new instance.
 	 */
-	public TextContent()
+	public AbstractRtfNode()
 	{
 	}
 
-	public RtfGroup getText()
+	public RtfGroup getParent()
 	{
-		return _text;
+		return _parent;
 	}
 
-	public void setText( final RtfGroup text )
+	public void setParent( final RtfGroup parent )
 	{
-		_text = text;
-	}
-
-	@Override
-	public String toString()
-	{
-		return super.toString();
+		_parent = parent;
 	}
 }

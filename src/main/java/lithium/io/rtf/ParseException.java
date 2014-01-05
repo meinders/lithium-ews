@@ -15,40 +15,34 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package lithium.io.ews;
+package lithium.io.rtf;
 
-import lithium.io.rtf.*;
+import java.io.*;
 
 /**
- * Text content, e.g. songs or scripture, typically with RTF markup.
+ * Thrown when an RTF document can't be parsed.
  *
  * @author Gerrit Meinders
  */
-public class TextContent
-implements Content
+public class ParseException
+extends IOException
 {
-	private RtfGroup _text;
-
-	/**
-	 * Constructs a new instance.
-	 */
-	public TextContent()
+	public ParseException()
 	{
 	}
 
-	public RtfGroup getText()
+	public ParseException( String message )
 	{
-		return _text;
+		super( message );
 	}
 
-	public void setText( final RtfGroup text )
+	public ParseException( String message, Throwable cause )
 	{
-		_text = text;
+		super( message, cause );
 	}
 
-	@Override
-	public String toString()
+	public ParseException( Throwable cause )
 	{
-		return super.toString();
+		super( cause );
 	}
 }

@@ -15,40 +15,36 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package lithium.io.ews;
+package lithium.io.rtf;
 
-import lithium.io.rtf.*;
+import java.io.*;
 
 /**
- * Text content, e.g. songs or scripture, typically with RTF markup.
+ * Writes an RTF document to a character stream or buffer.
  *
  * @author Gerrit Meinders
  */
-public class TextContent
-implements Content
+class StringRtfWriter
+extends RtfWriter
 {
-	private RtfGroup _text;
+	private Appendable _out;
 
-	/**
-	 * Constructs a new instance.
-	 */
-	public TextContent()
+	public StringRtfWriter( final Appendable out )
 	{
-	}
-
-	public RtfGroup getText()
-	{
-		return _text;
-	}
-
-	public void setText( final RtfGroup text )
-	{
-		_text = text;
+		_out = out;
 	}
 
 	@Override
-	public String toString()
+	public void write( final char c )
+		throws IOException
 	{
-		return super.toString();
+		_out.append( c );
+	}
+
+	@Override
+	public void write( final String s )
+		throws IOException
+	{
+		_out.append( s );
 	}
 }

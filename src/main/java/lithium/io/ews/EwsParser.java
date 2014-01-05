@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Gerrit Meinders
+ * Copyright 2013-2014 Gerrit Meinders
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,8 @@ import java.nio.charset.*;
 import java.util.*;
 import java.util.List;
 import java.util.zip.*;
+
+import lithium.io.rtf.*;
 
 import static lithium.io.ews.Tools.*;
 
@@ -52,33 +54,33 @@ public class EwsParser
 	}
 
 	public Schedule parse( final ByteBuffer buffer )
-	throws IOException
+		throws IOException
 	{
 		buffer.order( ByteOrder.LITTLE_ENDIAN );
 
-		final String scheduleFormatIdentifier = parsePaddedCString( buffer, 34, getCharset() );
-		if ( !scheduleFormatIdentifier.startsWith( "EasyWorship Schedule File" ) )
+		final String formatIdentifier = parsePaddedCString( buffer, 34, getCharset() );
+		if ( !formatIdentifier.startsWith( "EasyWorship Schedule File" ) )
 		{
 			throw new IllegalArgumentException( "Not an EasyWorship schedule file." );
 		}
 
-		final String scheduleFormatVersionString = parsePaddedCString( buffer, 5, getCharset() ).trim();
+		final String versionString = parsePaddedCString( buffer, 5, getCharset() ).trim();
 
-		if ( "5".equals( scheduleFormatVersionString ) )
+		if ( "5".equals( versionString ) )
 		{
 			skip( buffer, 19 );
 		}
-		else if ( "3".equals( scheduleFormatVersionString ) )
+		else if ( "3".equals( versionString ) )
 		{
 			skip( buffer, 11 );
 		}
-		else if ( "1.6".equals( scheduleFormatVersionString ) )
+		else if ( "1.6".equals( versionString ) )
 		{
 			skip( buffer, 3 );
 		}
 		else
 		{
-			throw new IllegalArgumentException( "Unsupported version: '" + scheduleFormatVersionString + "'" );
+			throw new IllegalArgumentException( "Unsupported version: '" + versionString + "'" );
 		}
 
 		final int playlistEntryCount = buffer.getInt();
@@ -97,7 +99,7 @@ public class EwsParser
 	}
 
 	private ScheduleEntry parsePlaylistEntry( final ByteBuffer buffer, final int size )
-	throws IOException
+		throws IOException
 	{
 		final int start = buffer.position();
 
@@ -470,7 +472,7 @@ public class EwsParser
 	}
 
 	private TextContent parseDeflatedTextContent( final ByteBuffer buffer )
-	throws IOException
+		throws IOException
 	{
 		final int contentLength = buffer.getInt();
 		if ( contentLength < 0 )
@@ -500,12 +502,8 @@ public class EwsParser
 		final InflaterInputStream inflated = new InflaterInputStream( in );
 		final CheckedInputStream checked = new CheckedInputStream( inflated, new Adler32() );
 
-		final InputStreamReader reader = new InputStreamReader( checked, getCharset() );
-		final StringBuilder content = new StringBuilder( decompressedLength );
-		for ( int c = reader.read(); c != -1; c = reader.read() )
-		{
-			content.append( (char)c );
-		}
+		final RtfParser rtfParser = new RtfParser();
+		final RtfGroup text = rtfParser.parse( checked );
 
 		final Checksum actualChecksum = checked.getChecksum();
 		if ( expectedChecksum != (int)actualChecksum.getValue() )
@@ -518,7 +516,7 @@ public class EwsParser
 		skip( buffer, 2 );
 
 		final TextContent result = new TextContent();
-		result.setText( content.toString() );
+		result.setText( text );
 		return result;
 	}
 
