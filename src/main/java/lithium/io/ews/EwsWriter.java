@@ -16,12 +16,14 @@
  */
 package lithium.io.ews;
 
-import java.io.*;
-import java.nio.charset.*;
-import java.util.*;
-import java.util.zip.*;
+import lithium.io.rtf.RtfWriter;
 
-import lithium.io.rtf.*;
+import java.io.*;
+import java.nio.charset.Charset;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.zip.DeflaterOutputStream;
 
 /**
  * Writes schedules in the EWS file format.
@@ -39,6 +41,11 @@ public class EwsWriter
 	public EwsWriter( final OutputStream out )
 	{
 		_out = out;
+	}
+
+	public EwsWriter( final File file ) throws IOException {
+		file.createNewFile();
+		_out = new FileOutputStream(file);
 	}
 
 	public Charset getCharset()

@@ -16,7 +16,7 @@
  */
 package lithium.io.ews;
 
-import java.util.*;
+import java.util.Date;
 
 /**
  * An entry in a {@link Schedule}, which provides content and various meta
@@ -24,246 +24,220 @@ import java.util.*;
  *
  * @author Gerrit Meinders
  */
-public class ScheduleEntry
-{
-	private String _title;
+public class ScheduleEntry {
+    private String _title;
 
-	private String _mediaResource;
+    private String _mediaResource;
 
-	private String _author;
+    private String _author;
 
-	private String _copyright;
+    private String _copyright;
 
-	private String _administrator;
+    private String _administrator;
 
-	private Date _timestamp;
+    private Date _timestamp;
 
-	private Content _content;
+    private Content _content;
 
-	private Type _type;
+    private Type _type;
 
-	private String _notes;
+    private String _notes;
 
-	private String _songNumber;
+    private String _songNumber;
 
-	private Presentation _presentation;
+    private Presentation _presentation;
 
-	private Background _background;
+    private Background _background;
 
-	private BinaryContent _thumbnailImage;
+    private BinaryContent _thumbnailImage;
 
-	/**
-	 * Constructs a new instance.
-	 */
-	public ScheduleEntry()
-	{
-	}
+    /**
+     * Constructs a new instance.
+     */
+    public ScheduleEntry() {
+    }
 
-	public String getTitle()
-	{
-		return _title;
-	}
+    public ScheduleEntry(final String title) {
+        setTitle(title);
+    }
 
-	public void setTitle( final String title )
-	{
-		_title = title;
-	}
+    public ScheduleEntry(final String title, final Content content) {
+        setTitle(title);
+        setContent(content);
+    }
 
-	public String getMediaResource()
-	{
-		return _mediaResource;
-	}
+    public String getTitle() {
+        return _title;
+    }
 
-	public void setMediaResource( final String mediaResource )
-	{
-		_mediaResource = mediaResource;
-	}
+    public void setTitle(final String title) {
+        _title = title;
+    }
 
-	public String getAuthor()
-	{
-		return _author;
-	}
+    public String getMediaResource() {
+        return _mediaResource;
+    }
 
-	public void setAuthor( final String author )
-	{
-		_author = author;
-	}
+    public void setMediaResource(final String mediaResource) {
+        _mediaResource = mediaResource;
+    }
 
-	public String getCopyright()
-	{
-		return _copyright;
-	}
+    public String getAuthor() {
+        return _author;
+    }
 
-	public void setCopyright( final String copyright )
-	{
-		_copyright = copyright;
-	}
+    public void setAuthor(final String author) {
+        _author = author;
+    }
 
-	public String getAdministrator()
-	{
-		return _administrator;
-	}
+    public String getCopyright() {
+        return _copyright;
+    }
 
-	public void setAdministrator( final String administrator )
-	{
-		_administrator = administrator;
-	}
+    public void setCopyright(final String copyright) {
+        _copyright = copyright;
+    }
 
-	public Date getTimestamp()
-	{
-		return _timestamp;
-	}
+    public String getAdministrator() {
+        return _administrator;
+    }
 
-	public void setTimestamp( final Date timestamp )
-	{
-		_timestamp = timestamp;
-	}
+    public void setAdministrator(final String administrator) {
+        _administrator = administrator;
+    }
 
-	public Content getContent()
-	{
-		return _content;
-	}
+    public Date getTimestamp() {
+        return _timestamp;
+    }
 
-	public void setContent( final Content content )
-	{
-		_content = content;
-	}
+    public void setTimestamp(final Date timestamp) {
+        _timestamp = timestamp;
+    }
 
-	public Type getType()
-	{
-		return _type;
-	}
+    public Content getContent() {
+        return _content;
+    }
 
-	public void setType( final Type type )
-	{
-		_type = type;
-	}
+    public void setContent(final Content content) {
+        _content = content;
+    }
 
-	public String getNotes()
-	{
-		return _notes;
-	}
+    public Type getType() {
+        return _type;
+    }
 
-	public void setNotes( final String notes )
-	{
-		_notes = notes;
-	}
+    public void setType(final Type type) {
+        _type = type;
+    }
 
-	public String getSongNumber()
-	{
-		return _songNumber;
-	}
+    public String getNotes() {
+        return _notes;
+    }
 
-	public void setSongNumber( final String songNumber )
-	{
-		_songNumber = songNumber;
-	}
+    public void setNotes(final String notes) {
+        _notes = notes;
+    }
 
-	public void setPresentation( final Presentation presentation )
-	{
-		_presentation = presentation;
-	}
+    public String getSongNumber() {
+        return _songNumber;
+    }
 
-	public Presentation getPresentation()
-	{
-		return _presentation;
-	}
+    public void setSongNumber(final String songNumber) {
+        _songNumber = songNumber;
+    }
 
-	public void setBackground( final Background background )
-	{
-		_background = background;
-	}
+    public void setPresentation(final Presentation presentation) {
+        _presentation = presentation;
+    }
 
-	public Background getBackground()
-	{
-		return _background;
-	}
+    public Presentation getPresentation() {
+        return _presentation;
+    }
 
-	public void setThumbnailImage( BinaryContent thumbnailImage )
-	{
-		_thumbnailImage = thumbnailImage;
-	}
+    public void setBackground(final Background background) {
+        _background = background;
+    }
 
-	public BinaryContent getThumbnailImage()
-	{
-		return _thumbnailImage;
-	}
+    public Background getBackground() {
+        return _background;
+    }
 
-	public enum Type
-	{
-		UNKNOWN,
-		SONG,
-		SCRIPTURE,
-		PRESENTATION,
-		VIDEO,
-		LIVE_VIDEO,
-		IMAGE,
-		AUDIO,
-		WEB
-	}
+    public void setThumbnailImage(BinaryContent thumbnailImage) {
+        _thumbnailImage = thumbnailImage;
+    }
 
-	public enum HorizontalAlignment
-	{
-		LEFT,
-		CENTER,
-		RIGHT
-	}
+    public BinaryContent getThumbnailImage() {
+        return _thumbnailImage;
+    }
 
-	public enum VerticalAlignment
-	{
-		TOP,
-		CENTER,
-		BOTTOM
-	}
+    public enum Type {
+        UNKNOWN,
+        SONG,
+        SCRIPTURE,
+        PRESENTATION,
+        VIDEO,
+        LIVE_VIDEO,
+        IMAGE,
+        AUDIO,
+        WEB
+    }
 
-	public enum AspectRatio
-	{
-		MAINTAIN, // Keep aspect ratio, touch frame from inside
-		STRETCH,
-		ZOOM // Keep aspect ratio, touch frame from outside
-	}
+    public enum HorizontalAlignment {
+        LEFT,
+        CENTER,
+        RIGHT
+    }
 
-	public enum BackgroundType
-	{
-		COLOR,
-		GRADIENT,
-		IMAGE_TILED,
-		IMAGE_SCALED,
-		VIDEO,
-		LIVE_VIDEO
-	}
+    public enum VerticalAlignment {
+        TOP,
+        CENTER,
+        BOTTOM
+    }
 
-	public enum GradientStyle
-	{
-		HORIZONTAL,
-		VERTICAL,
-		DIAGONAL_UP,
-		DIAGONAL_DOWN
-	}
+    public enum AspectRatio {
+        MAINTAIN, // Keep aspect ratio, touch frame from inside
+        STRETCH,
+        ZOOM // Keep aspect ratio, touch frame from outside
+    }
 
-	/**
-	 * NOTE: Bi-linear is GIMP terminology (though in GIMP the colors are reversed).
-	 */
-	public enum GradientVariant
-	{
-		/**
-		 * Linear gradient: color 1, color 2.
-		 */
-		LINEAR,
+    public enum BackgroundType {
+        COLOR,
+        GRADIENT,
+        IMAGE_TILED,
+        IMAGE_SCALED,
+        VIDEO,
+        LIVE_VIDEO
+    }
 
-		/**
-		 * Reversed linear gradient: color 2, color 1.
-		 */
-		LINEAR_REVERSED,
+    public enum GradientStyle {
+        HORIZONTAL,
+        VERTICAL,
+        DIAGONAL_UP,
+        DIAGONAL_DOWN
+    }
 
-		/**
-		 * Bi-linear gradient: color 1, color 2, color 1.
-		 */
-		BILINEAR,
+    /**
+     * NOTE: Bi-linear is GIMP terminology (though in GIMP the colors are reversed).
+     */
+    public enum GradientVariant {
+        /**
+         * Linear gradient: color 1, color 2.
+         */
+        LINEAR,
 
-		/**
-		 * Reversed bi-linear gradient: color 2, color 1, color 1.
-		 */
-		BILINEAR_REVERSED
-	}
+        /**
+         * Reversed linear gradient: color 2, color 1.
+         */
+        LINEAR_REVERSED,
+
+        /**
+         * Bi-linear gradient: color 1, color 2, color 1.
+         */
+        BILINEAR,
+
+        /**
+         * Reversed bi-linear gradient: color 2, color 1, color 1.
+         */
+        BILINEAR_REVERSED
+    }
 }

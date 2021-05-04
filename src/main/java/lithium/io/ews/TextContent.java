@@ -17,7 +17,7 @@
 
 package lithium.io.ews;
 
-import lithium.io.rtf.*;
+import lithium.io.rtf.RtfGroup;
 
 /**
  * Text content, e.g. songs or scripture, typically with RTF markup.
@@ -25,30 +25,29 @@ import lithium.io.rtf.*;
  * @author Gerrit Meinders
  */
 public class TextContent
-implements Content
-{
-	private RtfGroup _text;
+        implements Content {
+    private RtfGroup _text;
 
-	/**
-	 * Constructs a new instance.
-	 */
-	public TextContent()
-	{
-	}
+    /**
+     * Constructs a new instance.
+     */
+    public TextContent() {
+    }
 
-	public RtfGroup getText()
-	{
-		return _text;
-	}
+    public TextContent(final RtfGroup text) {
+        setText(text);
+    }
 
-	public void setText( final RtfGroup text )
-	{
-		_text = text;
-	}
+    public RtfGroup getText() {
+        return _text;
+    }
 
-	@Override
-	public String toString()
-	{
-		return super.toString();
-	}
+    public void setText(final RtfGroup text) {
+        _text = text;
+    }
+
+    @Override
+    public String toString() {
+        return super.toString();
+    }
 }

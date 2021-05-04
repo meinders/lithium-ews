@@ -34,6 +34,11 @@ public class ControlSymbol
 	{
 	}
 
+	public ControlSymbol(char symbol)
+	{
+		setSymbol(symbol);
+	}
+
 	public void setSymbol( char symbol )
 	{
 		_symbol = symbol;
@@ -48,5 +53,11 @@ public class ControlSymbol
 	public void accept( final RtfVisitor visitor )
 	{
 		visitor.visitControlSymbol( this );
+	}
+
+	@Override
+	public String toString()
+	{
+		return super.toString() + "[symbol=" + _symbol+ "]";
 	}
 }
