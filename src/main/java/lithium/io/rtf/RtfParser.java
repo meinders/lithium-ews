@@ -17,8 +17,10 @@
 
 package lithium.io.rtf;
 
+import lithium.io.Config;
+
 import java.io.*;
-import java.nio.charset.*;
+import java.nio.charset.Charset;
 
 /**
  * Parses RTF documents.
@@ -196,7 +198,7 @@ public class RtfParser
 	{
 		bin.mark( 1024 );
 
-		final InputStreamReader headerReader = new InputStreamReader( bin, "US-ASCII" );
+		final InputStreamReader headerReader = new InputStreamReader(bin, Config.charset);
 		accept( headerReader, '{' );
 		accept( headerReader, '\\' );
 		accept( headerReader, 'r' );
@@ -215,7 +217,7 @@ public class RtfParser
 		final Charset charset;
 		if ( "ansi".equals( charsetName ) )
 		{
-			charset = Charset.forName( "US-ASCII" );
+			charset = Charset.forName( Config.charset );
 		}
 		else
 		{

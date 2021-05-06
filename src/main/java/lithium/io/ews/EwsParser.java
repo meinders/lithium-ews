@@ -16,15 +16,22 @@
  */
 package lithium.io.ews;
 
-import java.awt.*;
-import java.io.*;
-import java.nio.*;
-import java.nio.charset.*;
-import java.util.*;
-import java.util.List;
-import java.util.zip.*;
+import lithium.io.Config;
+import lithium.io.rtf.RtfGroup;
+import lithium.io.rtf.RtfParser;
 
-import lithium.io.rtf.*;
+import java.awt.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.charset.Charset;
+import java.util.Date;
+import java.util.List;
+import java.util.zip.Adler32;
+import java.util.zip.CheckedInputStream;
+import java.util.zip.Checksum;
+import java.util.zip.InflaterInputStream;
 
 import static lithium.io.ews.Tools.*;
 
@@ -35,7 +42,7 @@ import static lithium.io.ews.Tools.*;
  */
 public class EwsParser
 {
-	private Charset _charset = Charset.defaultCharset();
+	private Charset _charset = Charset.forName(Config.charset);
 
 	private int _index = 1;
 

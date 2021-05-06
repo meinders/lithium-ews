@@ -16,6 +16,7 @@
  */
 package lithium.io.ews;
 
+import lithium.io.Config;
 import lithium.io.rtf.RtfWriter;
 
 import java.io.*;
@@ -36,7 +37,7 @@ public class EwsWriter
 
 	private final OutputStream _out;
 
-	private Charset _charset = Charset.defaultCharset();
+	private Charset _charset = Charset.forName(Config.charset);
 
 	public EwsWriter( final OutputStream out )
 	{

@@ -18,6 +18,7 @@
 package lithium.io.ews;
 
 import junit.framework.TestCase;
+import lithium.io.Config;
 import lithium.io.rtf.RtfGroup;
 import lithium.io.rtf.RtfWriter;
 import lithium.io.rtf.TextNode;
@@ -190,7 +191,7 @@ public class TestEwsParser
     }
 
     public void testReadScheduleWith2Songs() throws IOException {
-        final byte[] scheduleFile = Tools.loadResource(getClass(), "file1.ews");
+        final byte[] scheduleFile = Tools.loadResource(getClass(), "output2.ews");
 
         final EwsParser parser = new EwsParser();
         parser.setCharset(Charset.forName("windows-1252"));
@@ -218,7 +219,8 @@ public class TestEwsParser
                      "zin 7\n" +
                      "shift enter zin 8\n" +
                      "zin 9\n" +
-                     "zin 10 heeft zwarte kleuren\n", TestUtils.getTextFromContent((TextContent) content1).replace("\r", ""));
+                     "zin 10 heeft zwarte kleuren\n\n",
+                     TestUtils.getTextFromContent((TextContent) content1).replace("\r", ""));
 
         assertEquals("Verse 1\n" +
                      "Gezegend hij, die in der bozen raad\n" +
@@ -246,8 +248,8 @@ public class TestEwsParser
                      "er is geen plaats voor hen bij zijn vertrouwden.\n" +
                      "God kent die wandelt in het rechte spoor,\n" +
                      "wie Hem verlaat gaat dwalende teloor.\n" +
-                     "\n" +
-                     "\n", TestUtils.getTextFromContent((TextContent) content2).replace("\r", ""));
+                     "\n",
+                     TestUtils.getTextFromContent((TextContent) content2).replace("\r", ""));
     }
 
     /**
@@ -324,5 +326,38 @@ public class TestEwsParser
             final TextContent textContent = (TextContent) content;
             assertEquals("Entry " + i + ": unexpected content.", expectedContents[i], RtfWriter.writeToString(textContent.getText()));
         }
+    }
+
+    public void testWriteAndThenReadScheduleFile() throws IOException {
+        // Write
+        Schedule writeSchedule = new Schedule();
+        writeSchedule.getEntries().add(TestUtils.createEntry("Leeg", "first sentence 1\n" +
+                                                                     "next sentence has a special char: é\n"));
+
+        Path tempOutputPath = Files.createTempFile("tmpOutput", ".ews");
+        File tempOutputFile = tempOutputPath.toFile();
+        tempOutputFile.deleteOnExit();
+
+        final EwsWriter writer = new EwsWriter(tempOutputFile);
+        writer.setCharset(Charset.forName(Config.charset));
+        writer.write(writeSchedule);
+        writer.close();
+
+        // Read
+        final byte[] scheduleFileActual = Tools.load(new FileInputStream(tempOutputFile));
+
+        EwsParser parser = new EwsParser();
+        parser.setCharset(Charset.forName(Config.charset));
+        Schedule readSchedule = parser.parse(ByteBuffer.wrap(scheduleFileActual));
+
+        assertEquals("Unexpected number of entries.", 1, readSchedule.getEntries().size());
+        assertEquals("Leeg", readSchedule.getEntries().get(0).getTitle());
+
+        Content content1 = readSchedule.getEntries().get(0).getContent();
+        assertTrue("Expected text content1, but was: " + content1, content1 instanceof TextContent);
+
+        assertEquals("first sentence 1\n" +
+                     "next sentence has a special char: é",
+                     TestUtils.getTextFromContent((TextContent) content1).replace("\r", "").trim());
     }
 }
