@@ -124,6 +124,7 @@ public class TestEwsParser
         final byte[] scheduleFileActual = Tools.load(new FileInputStream(tempOutputFile));
         final byte[] scheduleFileExpected = Tools.loadResource(getClass(), "output1.ews");
 
+        assertEquals(scheduleFileExpected.length, scheduleFileActual.length);
         for (int i = 0; i < scheduleFileExpected.length; i++) {
             assertEquals("Byte at index " + i + " are not equal: files are not equal", scheduleFileExpected[i], scheduleFileActual[i]);
         }
@@ -185,6 +186,7 @@ public class TestEwsParser
         final byte[] scheduleFileActual = Tools.load(new FileInputStream(tempOutputFile));
         final byte[] scheduleFileExpected = Tools.loadResource(getClass(), "output2.ews");
 
+        assertEquals(scheduleFileExpected.length, scheduleFileActual.length);
         for (int i = 0; i < scheduleFileExpected.length; i++) {
             assertEquals("Byte at index " + i + " are not equal: files are not equal", scheduleFileExpected[i], scheduleFileActual[i]);
         }
@@ -358,6 +360,46 @@ public class TestEwsParser
 
         assertEquals("first sentence 1\n" +
                      "next sentence has a special char: é",
+                     TestUtils.getTextFromContent((TextContent) content1).replace("\r", "").trim());
+    }
+
+    public void testReadFileWithSpecialChars() throws IOException {
+        final byte[] scheduleFile = Tools.loadResource(getClass(), "special_chars.ews");
+
+        EwsParser parser = new EwsParser();
+        parser.setCharset(Charset.forName(Config.charset));
+        Schedule readSchedule = parser.parse(ByteBuffer.wrap(scheduleFile));
+
+        assertEquals("Unexpected number of entries.", 1, readSchedule.getEntries().size());
+        assertEquals("Leeg", readSchedule.getEntries().get(0).getTitle());
+
+        Content content1 = readSchedule.getEntries().get(0).getContent();
+        assertTrue("Expected text content1, but was: " + content1, content1 instanceof TextContent);
+
+        assertEquals("Special chars: a,b,c,d,e, (', ^, \", `) but for real: \n" +
+                     "e: é, ê, ë, è\n" +
+                     "a: á, â, ä, à\n" +
+                     "u: ú, û, ü, ù\n" +
+                     "i: í, î, ï, ì\n" +
+                     "o: ó, ô, ö, ò\n" +
+                     "E: É, Ê, Ë, È\n" +
+                     "A: Á, Â, Ä, À\n" +
+                     "U: Ú, Û, Ü, Ù\n" +
+                     "I: Í, Î, Ï, Ì\n" +
+                     "O: Ó, Ô, Ö, Ò\n" +
+                     "\n" +
+                     "`1234567890-=\n" +
+                     "~!@#$%^&*()_+\n" +
+                     "[]\\ - {}|\n" +
+                     ";' - :\"\n" +
+                     ",./ - <>?\n" +
+                     "¡²³¤€¼½¾‘’¥×\n" +
+                     "äåé®þüúíóö«»¬\n" +
+                     "áßðø¶´\n" +
+                     "æ©ñµç¿\n" +
+                     "ÄÅÉ®ÞÜÚÍÓÖ«»¬\n" +
+                     "ÁßÐØ¶´\n" +
+                     "Æ©ÑµÇ¿",
                      TestUtils.getTextFromContent((TextContent) content1).replace("\r", "").trim());
     }
 }

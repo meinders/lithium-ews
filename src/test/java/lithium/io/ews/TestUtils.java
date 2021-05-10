@@ -358,11 +358,102 @@ public class TestUtils {
         if (node instanceof RtfGroup) {
             getTextFromGroup(output, (RtfGroup) node);
         } else if (node instanceof TextNode) {
-            output.append(((TextNode) node).getText());
+            String text = insertSpecialChars(((TextNode) node).getText());
+            output.append(text);
         } else if (node instanceof ControlWord) {
-            if ("line".equals(((ControlWord) node).getWord())) {
+            if ("line" .equals(((ControlWord) node).getWord())) {
                 output.append("\n");
             }
+        } else if (node instanceof ControlSymbol) {
+            if ('\\' == ((ControlSymbol) node).getSymbol()) {
+                output.append("\\");
+            } else if ('{' == ((ControlSymbol) node).getSymbol()) {
+                output.append("{");
+            } else if ('}' == ((ControlSymbol) node).getSymbol()) {
+                output.append("}");
+            }
         }
+    }
+
+    public static String insertSpecialChars(String text) {
+        return text
+                .replaceAll("^e9", "é")
+                .replaceAll("^ea", "ê")
+                .replaceAll("^eb", "ë")
+                .replaceAll("^e8", "è")
+                .replaceAll("^e1", "á")
+                .replaceAll("^e2", "â")
+                .replaceAll("^e4", "ä")
+                .replaceAll("^e0", "à")
+                .replaceAll("^e5", "å")
+                .replaceAll("^fa", "ú")
+                .replaceAll("^fb", "û")
+                .replaceAll("^fc", "ü")
+                .replaceAll("^f9", "ù")
+                .replaceAll("^ed", "í")
+                .replaceAll("^ee", "î")
+                .replaceAll("^ef", "ï")
+                .replaceAll("^ec", "ì")
+                .replaceAll("^f3", "ó")
+                .replaceAll("^f4", "ô")
+                .replaceAll("^f6", "ö")
+                .replaceAll("^f2", "ò")
+                .replaceAll("^f0", "ð")
+                .replaceAll("^f8", "ø")
+                .replaceAll("^c9", "É")
+                .replaceAll("^ca", "Ê")
+                .replaceAll("^cb", "Ë")
+                .replaceAll("^c8", "È")
+                .replaceAll("^c1", "Á")
+                .replaceAll("^c2", "Â")
+                .replaceAll("^c4", "Ä")
+                .replaceAll("^c0", "À")
+                .replaceAll("^c5", "Å")
+                .replaceAll("^da", "Ú")
+                .replaceAll("^db", "Û")
+                .replaceAll("^dc", "Ü")
+                .replaceAll("^d9", "Ù")
+                .replaceAll("^cd", "Í")
+                .replaceAll("^ce", "Î")
+                .replaceAll("^cf", "Ï")
+                .replaceAll("^cc", "Ì")
+                .replaceAll("^d3", "Ó")
+                .replaceAll("^d4", "Ô")
+                .replaceAll("^d6", "Ö")
+                .replaceAll("^d2", "Ò")
+                .replaceAll("^a1", "¡")
+                .replaceAll("^b2", "²")
+                .replaceAll("^b3", "³")
+                .replaceAll("^a4", "¤")
+                .replaceAll("^80", "€")
+                .replaceAll("^bc", "¼")
+                .replaceAll("^bd", "½")
+                .replaceAll("^be", "¾")
+                .replaceAll("^91", "‘")
+                .replaceAll("^92", "’")
+                .replaceAll("^a5", "¥")
+                .replaceAll("^d7", "×")
+                .replaceAll("^ae", "®")
+                .replaceAll("^df", "ß")
+                .replaceAll("^b4", "´")
+                .replaceAll("^e6", "æ")
+                .replaceAll("^a9", "©")
+                .replaceAll("^f1", "ñ")
+                .replaceAll("^b5", "µ")
+                .replaceAll("^e7", "ç")
+                .replaceAll("^bf", "¿")
+                .replaceAll("^ae", "®")
+                .replaceAll("^c6", "Æ")
+                .replaceAll("^d1", "Ñ")
+                .replaceAll("^b5", "µ")
+                .replaceAll("^b6", "¶")
+                .replaceAll("^de", "Þ")
+                .replaceAll("^ab", "«")
+                .replaceAll("^bb", "»")
+                .replaceAll("^d0", "Ð")
+                .replaceAll("^d8", "Ø")
+                .replaceAll("^ac", "¬")
+                .replaceAll("^fe", "þ")
+                .replaceAll("^c7", "Ç");
     }
 }
