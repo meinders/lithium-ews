@@ -21,11 +21,11 @@ public class TestUtils {
                         new ControlWord("sa", 0, true),
                         new ControlWord("plain", null, false),
                         new ControlWord("f", 0, false),
-                        new ControlWord("fs", 20, false),
-                        new ControlWord("shad", 0, false),
-                        new ControlWord("outl", 0, false),
-                        new ControlWord("b", 0, false),
-                        new ControlWord("i", 0, true),
+                        new ControlWord("fs", 16, false),
+//                        new ControlWord("shad", 0, false),    // shadow
+//                        new ControlWord("outl", 0, false),    // outline
+//                        new ControlWord("b", 0, false),       // bold
+//                        new ControlWord("i", 0, true),        // italic
                         new TextNode(line),
                         new ControlWord("par", null, false),
                         new TextNode("\r\n")));
@@ -52,7 +52,7 @@ public class TestUtils {
                                                         new ControlWord("f", 0, false),
                                                         new ControlWord("fnil", null, false),
                                                         new ControlWord("fcharset", 1, true),
-                                                        new TextNode("Arial;"))))
+                                                        new TextNode("Tahoma;"))))
                                              ))),
                         new RtfGroup(new ArrayList<RtfNode>(
                                 Arrays.asList(

@@ -22,66 +22,68 @@ package lithium.io.ews;
  * @author Gerrit Meinders
  */
 public class VideoBackground
-	implements Background
-{
-	private String _name;
+        implements Background {
+    private String _name;
 
-	private ScheduleEntry.AspectRatio _aspectRatio;
+    private ScheduleEntry.AspectRatio _aspectRatio;
 
-	/**
-	 * Preview image from the video.
-	 */
-	private BinaryContent _image;
+    /**
+     * Preview image from the video.
+     */
+    private BinaryContent _image;
 
-	/**
-	 * Video used as a background, if embedded.
-	 */
-	private BinaryContent _video;
+    /**
+     * Video used as a background, if embedded.
+     */
+    private BinaryContent _video;
 
-	/**
-	 * Constructs a new instance.
-	 */
-	public VideoBackground()
-	{
-	}
+    /**
+     * Constructs a new instance.
+     */
+    public VideoBackground() {
+    }
 
-	public void setName( final String name )
-	{
-		_name = name;
-	}
+    public VideoBackground(final String name, final BinaryContent image, final BinaryContent video) {
+        setName(name);
+        setImage(image);
+        setVideo(video);
+    }
 
-	public String getName()
-	{
-		return _name;
-	}
+    public VideoBackground(final String name, final byte[] image, final byte[] video) {
+        setName(name);
+        setImage(new BinaryContent(image));
+        setVideo(new BinaryContent(video));
+    }
 
-	public void setAspectRatio( final ScheduleEntry.AspectRatio aspectRatio )
-	{
-		_aspectRatio = aspectRatio;
-	}
+    public void setName(final String name) {
+        _name = name;
+    }
 
-	public ScheduleEntry.AspectRatio getAspectRatio()
-	{
-		return _aspectRatio;
-	}
+    public String getName() {
+        return _name;
+    }
 
-	public void setImage( final BinaryContent image )
-	{
-		_image = image;
-	}
+    public void setAspectRatio(final ScheduleEntry.AspectRatio aspectRatio) {
+        _aspectRatio = aspectRatio;
+    }
 
-	public BinaryContent getImage()
-	{
-		return _image;
-	}
+    public ScheduleEntry.AspectRatio getAspectRatio() {
+        return _aspectRatio;
+    }
 
-	public void setVideo( final BinaryContent video )
-	{
-		_video = video;
-	}
+    public void setImage(final BinaryContent image) {
+        _image = image;
+    }
 
-	public BinaryContent getVideo()
-	{
-		return _video;
-	}
+    public BinaryContent getImage() {
+        return _image;
+    }
+
+    public void setVideo(final BinaryContent video) {
+        _video = video;
+    }
+
+    public BinaryContent getVideo() {
+        return _video;
+    }
 }

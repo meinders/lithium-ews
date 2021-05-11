@@ -121,9 +121,9 @@ public class EwsParser
 		skip( buffer, 1 );
 		final boolean defaultBackground = ( buffer.get() != 0 );
 		final ScheduleEntry.BackgroundType backgroundType = parseBackgroundType( buffer.getInt() );
-		final Color backgroundColor = new Color( parseColor( buffer ), false );
-		final Color gradientColor1 = new Color( parseColor( buffer ), false );
-		final Color gradientColor2 = new Color( parseColor( buffer ), false );
+		final Color backgroundColor = parseColor( buffer );
+		final Color gradientColor1 = parseColor( buffer );
+		final Color gradientColor2 = parseColor( buffer );
 		final ScheduleEntry.GradientStyle gradientStyle = parseGradientStyle( buffer.get() );
 		final ScheduleEntry.GradientVariant gradientVariant = parseGradientVariant( buffer.get() );
 		skip( buffer, 6 );
@@ -166,11 +166,11 @@ public class EwsParser
 			final String fontName = parsePaddedCString( buffer, 255, getCharset() );
 
 			final boolean foregroundAutomatic = buffer.getInt() == 1;
-			final Color foregroundColor = new Color( parseColor( buffer ), false );
+			final Color foregroundColor = parseColor( buffer );
 			final boolean shadowAutomatic = buffer.getInt() == 1;
-			final Color shadowColor = new Color( parseColor( buffer ), false );
+			final Color shadowColor = parseColor( buffer );
 			final boolean outlineAutomatic = buffer.getInt() == 1;
-			final Color outlineColor = new Color( parseColor( buffer ), false );
+			final Color outlineColor = parseColor( buffer );
 
 			final Boolean shadowEnabled = parseTristate( buffer.get() );
 			final Boolean outlineEnabled = parseTristate( buffer.get() );
@@ -324,11 +324,6 @@ public class EwsParser
 						buffer.position( position );
 					}
 				}
-
-				if ( backgroundType == ScheduleEntry.BackgroundType.IMAGE_SCALED )
-				{
-					videoBackground.setAspectRatio( aspectRatio );
-				}
 			}
 			else if ( backgroundType == ScheduleEntry.BackgroundType.LIVE_VIDEO )
 			{
@@ -336,10 +331,6 @@ public class EwsParser
 				background = liveVideoBackground;
 				liveVideoBackground.setName( backgroundName );
 
-				if ( backgroundType == ScheduleEntry.BackgroundType.IMAGE_SCALED )
-				{
-					liveVideoBackground.setAspectRatio( aspectRatio );
-				}
 			}
 			else
 			{

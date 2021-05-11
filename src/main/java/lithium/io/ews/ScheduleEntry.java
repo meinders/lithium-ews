@@ -185,13 +185,15 @@ public class ScheduleEntry {
     public enum HorizontalAlignment {
         LEFT,
         CENTER,
-        RIGHT
+        RIGHT,
+        DEFAULT
     }
 
     public enum VerticalAlignment {
         TOP,
         CENTER,
-        BOTTOM
+        BOTTOM,
+        DEFAULT
     }
 
     public enum AspectRatio {

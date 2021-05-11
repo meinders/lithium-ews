@@ -19,6 +19,7 @@ package lithium.io.ews;
 import lithium.io.Config;
 import lithium.io.rtf.RtfWriter;
 
+import java.awt.*;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.util.Calendar;
@@ -31,274 +32,535 @@ import java.util.zip.DeflaterOutputStream;
  *
  * @author Gerrit Meinders
  */
-public class EwsWriter
-{
-	private static final int SCHEDULE_ENTRY_LENGTH = 1816;
+public class EwsWriter {
+    private static final int SCHEDULE_ENTRY_LENGTH = 1816;
 
-	private final OutputStream _out;
+    private final OutputStream _out;
 
-	private Charset _charset = Charset.forName(Config.charset);
+    private Charset _charset = Charset.forName(Config.charset);
 
-	public EwsWriter( final OutputStream out )
-	{
-		_out = out;
-	}
+    public EwsWriter(final OutputStream out) {
+        _out = out;
+    }
 
-	public EwsWriter( final File file ) throws IOException {
-		file.createNewFile();
-		_out = new FileOutputStream(file);
-	}
+    public EwsWriter(final File file) throws IOException {
+        file.createNewFile();
+        _out = new FileOutputStream(file);
+    }
 
-	public Charset getCharset()
-	{
-		return _charset;
-	}
+    public Charset getCharset() {
+        return _charset;
+    }
 
-	public void setCharset( final Charset charset )
-	{
-		_charset = charset;
-	}
+    public void setCharset(final Charset charset) {
+        _charset = charset;
+    }
 
-	public void write( final Schedule schedule )
-	throws IOException
-	{
-		writeImpl( schedule );
-	}
+    public void write(final Schedule schedule)
+            throws IOException {
+        writeImpl(schedule);
+    }
 
-	private void writeImpl( final Schedule schedule )
-	throws IOException
-	{
-		final List<ScheduleEntry> entries = schedule.getEntries();
+    private void writeImpl(final Schedule schedule)
+            throws IOException {
+        final List<ScheduleEntry> entries = schedule.getEntries();
+        final int scheduleLength = entries.size() * SCHEDULE_ENTRY_LENGTH;
+        int cumulativeContentLength = 0;
 
-		writeString( "EasyWorship Schedule File Version    5" );
-		writeInt( 0x00001a00 );
-		writeInt( 0 );
-		writeInt( 0x00004014 );
-		writeInt( 0 );
-		writeShort( 0x4014 );
-		writeInt( entries.size() );
-		writeShort( SCHEDULE_ENTRY_LENGTH );
+        writeScheduleHeader(entries);
 
-		final int scheduleLength = entries.size() * SCHEDULE_ENTRY_LENGTH;
-		int cumulativeContentLength = 0;
+        // Add entries
+        for (final ScheduleEntry entry : entries) {
+            writeEntryInformation(entry, scheduleLength, cumulativeContentLength);
 
-		for ( final ScheduleEntry entry : entries )
-		{
-			// Song information
-			writePaddedString( entry.getTitle(), 51 );
-			writeZeroes( 256 );
-			writePaddedString( entry.getAuthor(), 51 );
-			writePaddedString( entry.getCopyright(), 101 );
-			writePaddedString( entry.getAdministrator(), 51 );
+            cumulativeContentLength += getEntryContentLength(entry);
+            cumulativeContentLength += getBackgroundContentLength(entry);
+            cumulativeContentLength += getMediaContentLength(entry);
+        }
 
-			// Unknown fields.
-			writeInt( 0x101 );
-			writeInt( 0 );
-			writeInt( 0x80 );
-			writeInt( 0x80 );
-			writeInt( 0x20000 );
-			writeZeroes( 262 );
+        // Add content
+        for (final ScheduleEntry entry : entries) {
+            writeContentForEntry(entry);
+            writeBackgroundForEntry(entry);
+            writeMediaForEntry(entry);
+        }
+    }
 
-			writeTimestamp( entry.getTimestamp() );
-			final int contentPointer = 62 + scheduleLength + cumulativeContentLength;
-			writeInt( contentPointer );
+    private void writeScheduleHeader(List<ScheduleEntry> entries) throws IOException {
+        writeString("EasyWorship Schedule File Version    5");
+        writeInt(0x00001a00);
+        writeInt(0);
+        writeInt(0x00004014);
+        writeInt(0);
+        writeShort(0x4014);
+        writeInt(entries.size());
+        writeShort(SCHEDULE_ENTRY_LENGTH);
+    }
 
-			// More unknown fields.
-			writeInt( 0 );
-			writeInt( 0 );
-			writeInt( 0 );
-			writeInt( 0 );
-			writeInt( 0x1 );
-			writeInt( 0 );
-			writeInt( 0 );
-			writeInt( 0 );
-			writeInt( 0 );
-			writeInt( 0 );
-			writeInt( 0x100 );
-			writeInt( 0 );
-			writeInt( 0x1 );
-			writeZeroes( 252 );
-			writeInt( 0x1 );
-			writeInt( 0 );
-			writeInt( 0x1 );
-			writeInt( 0 );
-			writeInt( 0x1 );
-			writeInt( 0 );
-			_out.write( 0x2 );
-			_out.write( 0x2 );
-			_out.write( 0x2 );
-			_out.write( 0x2 );
-			_out.write( 0x3 );
-			_out.write( 0x3 );
-			_out.write( 0x1 );
-			writeInt( 0 );
-			writeInt( 0 );
-			writeInt( 0 );
-			writeInt( 0 );
+    private void writeEntryInformation(ScheduleEntry entry, int scheduleLength, int cumulativeContentLength) throws IOException {
+        // Song information
+        writePaddedString(entry.getTitle(), 51);            // title
+        writePaddedString(entry.getMediaResource(), 256);   // mediaResource
+        writePaddedString(entry.getAuthor(), 51);           // author
+        writePaddedString(entry.getCopyright(), 101);       // copyright
+        writePaddedString(entry.getAdministrator(), 51);    // administrator
 
-			// More song information
-			writePaddedString( entry.getNotes(), 161 );
-			writeZeroes( 94 );
-			writePaddedString( entry.getSongNumber(), 11 );
-			writeZeroes( 99 );
-			writeInt( 0x2 );
-			writeZeroes( 292 );
+        writeBackgroundInformation(entry);
 
-			final Content content = entry.getContent();
-			if ( content instanceof TextContent )
-			{
-				final TextContent textContent = (TextContent)content;
-				final byte[] bytes = RtfWriter.writeToBytes( textContent.getText() );
+        writeTimestamp(entry.getTimestamp());
 
-				final ByteArrayOutputStream compressedOut = new ByteArrayOutputStream();
-				final DeflaterOutputStream deflaterOut = new DeflaterOutputStream( compressedOut );
-				deflaterOut.write( bytes );
-				deflaterOut.close();
-				cumulativeContentLength += compressedOut.size() + 14;
-			}
-			else if ( content instanceof BinaryContent )
-			{
-				final BinaryContent binaryContent = (BinaryContent)content;
-				final byte[] bytes = binaryContent.getBytes();
-				cumulativeContentLength += bytes.length + 4;
-			}
-			else if ( content != null )
-			{
-				throw new IllegalArgumentException( "Unsupported content: " + content );
-			}
-		}
+        final int contentPointer = 62 + scheduleLength + cumulativeContentLength;
+        writeInt(contentPointer);
 
-		for ( final ScheduleEntry entry : entries )
-		{
-			final Content content = entry.getContent();
-			if ( content instanceof TextContent )
-			{
-				final TextContent textContent = (TextContent)content;
-				final byte[] bytes = RtfWriter.writeToBytes( textContent.getText() );
+        writeZeroes(16);    // Skip
+        writeInt(parseEntryType(entry.getType()));  // Entry type
+        writeZeroes(15);    // Skip
+        _out.write(ScheduleEntry.Type.PRESENTATION.equals(entry.getType()) ? 1 : 0);          // isPresentation
+        writeInt(0);            // presentationLength
+        _out.write(0);          // customFontSettings
+        _out.write(1);          // fontSizeAutomatic
+        _out.write(0);          // Skip
+        _out.write(0);          // Skip
+        writeInt(0);            // fontSize limit
+        _out.write(1);          // useDefaultFont
+        writeZeroes(255);   // fontName
+        writeInt(1);            // foregroundAutomatic
+        writeInt(0);            // foregroundColor
+        writeInt(1);            // shadowAutomatic
+        writeInt(0);            // shadowColor
+        writeInt(1);            // outlineAutomatic
+        writeInt(0);            // outlineColor
+        _out.write(parseTristate(null));    // shadowEnabled
+        _out.write(parseTristate(null));    // outlineEnabled
+        _out.write(parseTristate(null));    // boldEnabled
+        _out.write(parseTristate(null));    // italicEnabled
+        _out.write(parseHorizontalAlignment(ScheduleEntry.HorizontalAlignment.DEFAULT));    // horizontalTextAlignment
+        _out.write(parseVerticalAlignment(ScheduleEntry.VerticalAlignment.DEFAULT));        // verticalTextAlignment
+        _out.write(1);          // defaultTextMargins
+        writeInt(0);            // textMarginLeft
+        writeInt(0);            // textMarginTop
+        writeInt(0);            // textMarginRight
+        writeInt(0);            // textMarginBottom
 
-				final ByteArrayOutputStream compressedOut = new ByteArrayOutputStream();
-				final DeflaterOutputStream deflaterOut = new DeflaterOutputStream( compressedOut );
-				deflaterOut.write( bytes );
-				deflaterOut.close();
+        // More song information
+        writePaddedString(entry.getNotes(), 161);
+        writeZeroes(94);    // skip
+        writePaddedString(entry.getSongNumber(), 11);
+        _out.write(0);    // skip
+        _out.write(0);    // media embedded
+        writeZeroes(57);        // skip
+        writeInt(0);                // originalResourceLength
+        writeZeroes(12);        // skip
 
-				final byte[] compressedContent = compressedOut.toByteArray();
-				writeInt( compressedContent.length + 10 );
-				_out.write( compressedContent );
-				_out.write( 0x51 );
-				_out.write( 0x4b );
-				_out.write( 0x03 );
-				_out.write( 0x04 );
-				writeInt( bytes.length );
-				_out.write( 0x08 );
-				_out.write( 0x0 );
-			}
-			else if ( content instanceof BinaryContent )
-			{
-				final BinaryContent binaryContent = (BinaryContent)content;
-				final byte[] bytes = binaryContent.getBytes();
-				cumulativeContentLength += bytes.length + 4;
-			}
-			else if ( content != null )
-			{
-				throw new IllegalArgumentException( "Unsupported content: " + content );
-			}
+        int mediaContentPointer = 0;
+        if (entry.getBackground() instanceof VideoBackground) {
+            int contentLength = getEntryContentLength(entry) + getBackgroundContentLength(entry);
+            mediaContentPointer = contentPointer + contentLength;
+        }
+        writeInt(mediaContentPointer);  // mediaContentPointer
 
-		}
-	}
+        writeZeroes(20);    // skip
 
-	private void writeZeroes( final int count )
-	throws IOException
-	{
-		for ( int i = 0; i < count; i++ )
-		{
-			_out.write( 0 );
-		}
-	}
+        // aspectRatio
+        ScheduleEntry.AspectRatio aspectRatio = ScheduleEntry.AspectRatio.STRETCH;
+        if (entry.getBackground() instanceof ImageBackground) {
+            aspectRatio = ((ImageBackground) entry.getBackground()).getAspectRatio();
+        } else if (entry.getBackground() instanceof LiveVideoBackground) {
+            aspectRatio = ((LiveVideoBackground) entry.getBackground()).getAspectRatio();
+        } else if (entry.getBackground() instanceof VideoBackground) {
+            aspectRatio = ((VideoBackground) entry.getBackground()).getAspectRatio();
+        }
+        writeInt(parseAspectRatio(aspectRatio));
+        writeZeroes(292);    // skip
+    }
 
-	private void writeString( final String string )
-	throws IOException
-	{
-		_out.write( string.getBytes( getCharset() ) );
-	}
+    private void writeBackgroundInformation(ScheduleEntry entry) throws IOException {
+        boolean defaultBackground = false;
+        ScheduleEntry.BackgroundType backgroundType = ScheduleEntry.BackgroundType.COLOR;
+        Color backgroundColor = Color.BLACK;
+        Color gradientColor1 = new Color(0, 0, 128);
+        Color gradientColor2 = Color.black;
+        ScheduleEntry.GradientStyle gradientStyle = ScheduleEntry.GradientStyle.DIAGONAL_UP;
+        ScheduleEntry.GradientVariant gradientVariant = ScheduleEntry.GradientVariant.LINEAR;
+        String backgroundName = "";
 
-	private void writeTimestamp( final Date date )
-	throws IOException
-	{
-		if ( date == null )
-		{
-			writeDouble( 0.0 );
-		}
-		else
-		{
-			final Calendar calendar = Calendar.getInstance();
+        if (entry.getBackground() instanceof ColorBackground) {
+            ColorBackground background = (ColorBackground) entry.getBackground();
 
-			calendar.setTime( date );
-			calendar.set( Calendar.HOUR_OF_DAY, 0 );
-			calendar.set( Calendar.MINUTE, 0 );
-			calendar.set( Calendar.SECOND, 0 );
-			calendar.set( Calendar.MILLISECOND, 0 );
-			final Date startOfDay = calendar.getTime();
+            backgroundType = ScheduleEntry.BackgroundType.COLOR;
+            backgroundColor = background.getColor();
+        } else if (entry.getBackground() instanceof GradientBackground) {
+            GradientBackground background = (GradientBackground) entry.getBackground();
 
-			// It appears that 1 January 1900 does not compute.
-			calendar.set( 1899, Calendar.DECEMBER, 30, 0, 0, 0 );
-			final Date epoch = calendar.getTime();
+            backgroundType = ScheduleEntry.BackgroundType.GRADIENT;
+            gradientColor1 = background.getColor1();
+            gradientColor2 = background.getColor2();
+            gradientStyle = background.getStyle();
+            gradientVariant = background.getVariant();
+        } else if (entry.getBackground() instanceof ImageBackground) {
+            ImageBackground background = (ImageBackground) entry.getBackground();
 
-			// TODO: Not accurate for various reasons. Use Joda-Time.
-			final long dateDifference = date.getTime() - epoch.getTime();
-			final long timeDifference = date.getTime() - startOfDay.getTime();
-			final double timestamp = (double)( dateDifference / 86400000L ) + (double)timeDifference / 86400000.0;
+            if (background.isTiled()) {
+                backgroundType = ScheduleEntry.BackgroundType.IMAGE_TILED;
+            } else {
+                backgroundType = ScheduleEntry.BackgroundType.IMAGE_SCALED;
+            }
 
-			writeDouble( timestamp );
-		}
-	}
+            backgroundName = background.getName();
+        } else if (entry.getBackground() instanceof VideoBackground) {
+            VideoBackground background = (VideoBackground) entry.getBackground();
 
-	private void writeDouble( final double d )
-	throws IOException
-	{
-		writeLong( Double.doubleToLongBits( d ) );
-	}
+            backgroundType = ScheduleEntry.BackgroundType.VIDEO;
+            backgroundName = background.getName();
+        } else if (entry.getBackground() instanceof LiveVideoBackground) {
+            LiveVideoBackground background = (LiveVideoBackground) entry.getBackground();
 
-	private void writeLong( final long i )
-	throws IOException
-	{
-		writeInt( (int)i );
-		writeInt( (int)( i >> 32 ) );
-	}
+            backgroundType = ScheduleEntry.BackgroundType.LIVE_VIDEO;
+            backgroundName = background.getName();
+        } else {
+            defaultBackground = true;
+        }
 
-	private void writeInt( final int i )
-	throws IOException
-	{
-		_out.write( i & 0xff );
-		_out.write( ( i >> 8 ) & 0xff );
-		_out.write( ( i >> 16 ) & 0xff );
-		_out.write( ( i >> 24 ) & 0xff );
-	}
+        _out.write(0x01);    // skip
+        _out.write(defaultBackground ? 1 : 0);
+        writeInt(parseBackgroundType(backgroundType));
+        writeInt(parseColor(backgroundColor));
+        writeInt(parseColor(gradientColor1));
+        writeInt(parseColor(gradientColor2));
+        _out.write(parseGradientStyle(gradientStyle));
+        _out.write(parseGradientVariant(gradientVariant));
+        writeInt(0);         // skip
+        _out.write(0x00);    // skip
+        _out.write(0x00);    // skip
+        writePaddedString(backgroundName, 256);
+    }
 
-	private void writeShort( final int i )
-	throws IOException
-	{
-		_out.write( i & 0xff );
-		_out.write( ( i >> 8 ) & 0xff );
-	}
+    private int getEntryContentLength(ScheduleEntry entry) throws IOException {
+        final Content content = entry.getContent();
+        if (content instanceof TextContent) {
+            final TextContent textContent = (TextContent) content;
+            final byte[] bytes = RtfWriter.writeToBytes(textContent.getText());
 
-	private void writePaddedString( final String string, final int length )
-	throws IOException
-	{
-		if ( string == null )
-		{
-			writeZeroes( length );
-		}
-		else
-		{
-			final byte[] bytes = string.getBytes( getCharset() );
-			_out.write( bytes );
-			writeZeroes( length - bytes.length );
-		}
-	}
+            final ByteArrayOutputStream compressedOut = new ByteArrayOutputStream();
+            final DeflaterOutputStream deflaterOut = new DeflaterOutputStream(compressedOut);
+            deflaterOut.write(bytes);
+            deflaterOut.close();
+            return compressedOut.size() + 14;
+        } else if (content instanceof BinaryContent) {
+            final BinaryContent binaryContent = (BinaryContent) content;
+            final byte[] bytes = binaryContent.getBytes();
+            return bytes.length + 4;
+        } else if (content != null) {
+            throw new IllegalArgumentException("Unsupported content: " + content);
+        }
+        return 0;
+    }
 
-	public void close()
-	throws IOException
-	{
-		_out.close();
-	}
+    private int getBackgroundContentLength(ScheduleEntry entry) {
+        if (entry.getBackground() instanceof ImageBackground) {
+            final byte[] bytes = ((ImageBackground) entry.getBackground()).getImage().getBytes();
+            return 4 + bytes.length;
+        } else if (entry.getBackground() instanceof VideoBackground) {
+            final byte[] bytes = ((VideoBackground) entry.getBackground()).getImage().getBytes();
+            return 4 + bytes.length;
+        }
+        return 0;
+    }
+
+    private int getMediaContentLength(ScheduleEntry entry) {
+        if (entry.getBackground() instanceof VideoBackground) {
+            final byte[] bytes = ((VideoBackground) entry.getBackground()).getVideo().getBytes();
+            return 4 + 4 + bytes.length;    // Some types have 4 additional zero bytes. Don't know why.
+        }
+        return 0;
+    }
+
+    private void writeContentForEntry(ScheduleEntry entry) throws IOException {
+        final Content content = entry.getContent();
+        if (content instanceof TextContent) {
+            final TextContent textContent = (TextContent) content;
+            final byte[] bytes = RtfWriter.writeToBytes(textContent.getText());
+
+            final ByteArrayOutputStream compressedOut = new ByteArrayOutputStream();
+            final DeflaterOutputStream deflaterOut = new DeflaterOutputStream(compressedOut);
+            deflaterOut.write(bytes);
+            deflaterOut.close();
+
+            final byte[] compressedContent = compressedOut.toByteArray();
+            writeInt(compressedContent.length + 10);    // Content length
+            _out.write(compressedContent);  // Including checksum (last 4 bytes)
+            _out.write(0x51);       // Skip?
+            _out.write(0x4b);       // Skip?
+            _out.write(0x03);       // Skip?
+            _out.write(0x04);       // Skip?
+            writeInt(bytes.length); // decompressedLength
+            _out.write(0x08);
+            _out.write(0x0);
+        } else if (content instanceof BinaryContent) {
+            final BinaryContent binaryContent = (BinaryContent) content;
+            final byte[] bytes = binaryContent.getBytes();
+            writeInt(bytes.length);
+            _out.write(bytes);
+        } else if (content != null) {
+            throw new IllegalArgumentException("Unsupported content: " + content);
+        }
+    }
+
+    private void writeBackgroundForEntry(ScheduleEntry entry) throws IOException {
+        if (entry.getBackground() instanceof ImageBackground) {
+            final byte[] bytes = ((ImageBackground) entry.getBackground()).getImage().getBytes();
+            writeInt(bytes.length); // length
+            _out.write(bytes);      // data
+        } else if (entry.getBackground() instanceof VideoBackground) {
+            final byte[] bytes = ((VideoBackground) entry.getBackground()).getImage().getBytes();
+            writeInt(bytes.length); // length
+            _out.write(bytes);      // data
+        }
+    }
+
+    private void writeMediaForEntry(ScheduleEntry entry) throws IOException {
+        if (entry.getBackground() instanceof VideoBackground) {
+            final byte[] bytes = ((VideoBackground) entry.getBackground()).getVideo().getBytes();
+            writeInt(bytes.length); // length
+            writeZeroes(4);     // Some types have 4 additional zero bytes. Don't know why.
+            _out.write(bytes);      // data
+        }
+    }
+
+    private void writeZeroes(final int count)
+            throws IOException {
+        for (int i = 0; i < count; i++) {
+            _out.write(0);
+        }
+    }
+
+    private void writeString(final String string)
+            throws IOException {
+        _out.write(string.getBytes(getCharset()));
+    }
+
+    private void writeTimestamp(final Date date)
+            throws IOException {
+        if (date == null) {
+            writeDouble(0.0);
+        } else {
+            final Calendar calendar = Calendar.getInstance();
+
+            calendar.setTime(date);
+            calendar.set(Calendar.HOUR_OF_DAY, 0);
+            calendar.set(Calendar.MINUTE, 0);
+            calendar.set(Calendar.SECOND, 0);
+            calendar.set(Calendar.MILLISECOND, 0);
+            final Date startOfDay = calendar.getTime();
+
+            // It appears that 1 January 1900 does not compute.
+            calendar.set(1899, Calendar.DECEMBER, 30, 0, 0, 0);
+            final Date epoch = calendar.getTime();
+
+            // TODO: Not accurate for various reasons. Use Joda-Time.
+            final long dateDifference = date.getTime() - epoch.getTime();
+            final long timeDifference = date.getTime() - startOfDay.getTime();
+            final double timestamp = (double) (dateDifference / 86400000L) + (double) timeDifference / 86400000.0;
+
+            writeDouble(timestamp);
+        }
+    }
+
+    private void writeDouble(final double d)
+            throws IOException {
+        writeLong(Double.doubleToLongBits(d));
+    }
+
+    private void writeLong(final long i)
+            throws IOException {
+        writeInt((int) i);
+        writeInt((int) (i >> 32));
+    }
+
+    private void writeInt(final int i)
+            throws IOException {
+        _out.write(i & 0xff);
+        _out.write((i >> 8) & 0xff);
+        _out.write((i >> 16) & 0xff);
+        _out.write((i >> 24) & 0xff);
+    }
+
+    private void writeShort(final int i)
+            throws IOException {
+        _out.write(i & 0xff);
+        _out.write((i >> 8) & 0xff);
+    }
+
+    private void writePaddedString(final String string, final int length)
+            throws IOException {
+        if (string == null) {
+            writeZeroes(length);
+        } else {
+            final byte[] bytes = string.getBytes(getCharset());
+            _out.write(bytes);
+            writeZeroes(length - bytes.length);
+        }
+    }
+
+    public void close()
+            throws IOException {
+        _out.close();
+    }
+
+    private int parseBackgroundType(ScheduleEntry.BackgroundType value) {
+        if (value == null) {
+            return 0;
+        }
+
+        switch (value) {
+            case COLOR:
+                return 0;
+            case GRADIENT:
+                return 1;
+            case IMAGE_TILED:
+                return 2;
+            case IMAGE_SCALED:
+                return 3;
+            case VIDEO:
+                return 4;
+            case LIVE_VIDEO:
+                return 5;
+            default:
+                return 0;
+        }
+    }
+
+    private int parseAspectRatio(ScheduleEntry.AspectRatio value) {
+        if (value == null) {
+            return 0;
+        }
+
+        switch (value) {
+            case MAINTAIN:
+                return 1;
+            case STRETCH:
+                return 2;
+            case ZOOM:
+                return 3;
+            default:
+                return 0;
+        }
+    }
+
+    private byte parseHorizontalAlignment(ScheduleEntry.HorizontalAlignment value) {
+        if (value == null) {
+            return 3;
+        }
+
+        switch (value) {
+            case LEFT:
+                return 0;
+            case CENTER:
+                return 1;
+            case RIGHT:
+                return 2;
+            default:
+                return 3;
+        }
+    }
+
+    private byte parseVerticalAlignment(ScheduleEntry.VerticalAlignment value) {
+        if (value == null) {
+            return 3;
+        }
+
+        switch (value) {
+            case TOP:
+                return 0;
+            case CENTER:
+                return 1;
+            case BOTTOM:
+                return 2;
+            default:
+                return 3;
+        }
+    }
+
+    private byte parseTristate(Boolean value) {
+        if (value == Boolean.FALSE) {
+            return 0;
+        } else if (value == Boolean.TRUE) {
+            return 1;
+        }
+        return 2;
+    }
+
+    private byte parseGradientStyle(ScheduleEntry.GradientStyle value) {
+        if (value == null) {
+            return 0;
+        }
+
+        switch (value) {
+            case HORIZONTAL:
+                return 0;
+            case VERTICAL:
+                return 1;
+            case DIAGONAL_UP:
+                return 2;
+            case DIAGONAL_DOWN:
+                return 3;
+            default:
+                return 0;
+        }
+    }
+
+    private byte parseGradientVariant(ScheduleEntry.GradientVariant value) {
+        if (value == null) {
+            return 0;
+        }
+
+        switch (value) {
+            case LINEAR:
+                return 0;
+            case LINEAR_REVERSED:
+                return 1;
+            case BILINEAR:
+                return 2;
+            case BILINEAR_REVERSED:
+                return 3;
+            default:
+                return 0;
+        }
+    }
+
+    private int parseEntryType(ScheduleEntry.Type value) {
+        if (value == null) {
+            return 1;
+        }
+
+        switch (value) {
+            case SONG:
+                return 1;
+            case SCRIPTURE:
+                return 2;
+            case PRESENTATION:
+                return 3;
+            case VIDEO:
+                return 4;
+            case LIVE_VIDEO:
+                return 5;
+            case IMAGE:
+                return 7;
+            case AUDIO:
+                return 8;
+            case WEB:
+                return 9;
+            default:
+                return 1;
+        }
+    }
+
+    private int parseColor(Color value) {
+        if (value == null) {
+            return 0;
+        }
+        return (value.getBlue() << 16) |
+               (value.getGreen() << 8) |
+               (value.getRed());
+    }
 }
