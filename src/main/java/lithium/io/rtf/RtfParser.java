@@ -34,6 +34,7 @@ public class RtfParser
 	private int _next;
 
 	private StringBuilder _builder = new StringBuilder();
+	private Charset _charset = Charset.forName(Config.charset);
 
 	/**
 	 * Constructs a new instance.
@@ -46,8 +47,8 @@ public class RtfParser
 		throws IOException
 	{
 		final BufferedInputStream bin = new BufferedInputStream( in );
-		final Charset charset = detectCharset( bin );
-		final InputStreamReader reader = new InputStreamReader( bin, charset );
+		_charset = detectCharset( bin );
+		final InputStreamReader reader = new InputStreamReader( bin, _charset );
 		_reader = reader;
 		_next = reader.read();
 
@@ -114,10 +115,28 @@ public class RtfParser
 		{
 			return parseControlWord();
 		}
-		else
+		else if ( _next == '\'') {
+			// Get hex code for special char
+			accept();
+			String hexCode = Character.toString((char) _next);
+			accept();
+			hexCode += Character.toString((char) _next);
+			accept();
+
+			// Convert hex code to char with the correct charset encoding
+			int asciiCode = Integer.parseInt(hexCode, 16);
+			byte[] asciiBytes = {(byte) asciiCode};
+			String specialChar =new String(asciiBytes, _charset);
+
+			return new TextNode(specialChar);
+		} else
 		{
 			final char symbol = (char)_next;
 			accept();
+
+			if (symbol == '\\' || symbol == '{' || symbol == '}') {
+				return new TextNode(Character.toString(symbol));
+			}
 
 			final ControlSymbol result = new ControlSymbol();
 			result.setSymbol( symbol );

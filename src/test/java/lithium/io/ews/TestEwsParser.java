@@ -18,7 +18,6 @@
 package lithium.io.ews;
 
 import junit.framework.TestCase;
-import lithium.io.Config;
 import lithium.io.rtf.RtfWriter;
 
 import java.awt.*;
@@ -178,7 +177,6 @@ public class TestEwsParser
         final byte[] scheduleFile = Tools.loadResource(getClass(), "special_chars.ews");
 
         EwsParser parser = new EwsParser();
-        parser.setCharset(Charset.forName(Config.charset));
         Schedule schedule = parser.parse(ByteBuffer.wrap(scheduleFile));
 
         assertEquals("Unexpected number of entries.", 1, schedule.getEntries().size());
