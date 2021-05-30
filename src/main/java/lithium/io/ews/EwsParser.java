@@ -108,6 +108,7 @@ public class EwsParser
 	private ScheduleEntry parsePlaylistEntry( final ByteBuffer buffer, final int size )
 		throws IOException
 	{
+	    // Extract information from buffer in order to create a ScheduleEntry
 		final int start = buffer.position();
 
 		final String title = parsePaddedCString( buffer, 51, getCharset() );
@@ -158,32 +159,35 @@ public class EwsParser
 		ScheduleEntry.AspectRatio aspectRatio = null;
 		int originalResourceLength = 0;
 
+		// Create ScheduleEntry from extracted information
+		final ScheduleEntry result = new ScheduleEntry();
+
 		if ( size > 848 )
 		{
-			final int fontSize = buffer.getInt();
+			result.setFontSize( buffer.getInt());
 
-			final boolean useDefaultFont = ( buffer.get() != 0 );
-			final String fontName = parsePaddedCString( buffer, 255, getCharset() );
+			result.setUseDefaultFont(( buffer.get() != 0 ));
+			result.setFontName( parsePaddedCString( buffer, 255, getCharset() ));
 
-			final boolean foregroundAutomatic = buffer.getInt() == 1;
-			final Color foregroundColor = parseColor( buffer );
-			final boolean shadowAutomatic = buffer.getInt() == 1;
-			final Color shadowColor = parseColor( buffer );
-			final boolean outlineAutomatic = buffer.getInt() == 1;
-			final Color outlineColor = parseColor( buffer );
+			result.setForegroundAutomatic( buffer.getInt() == 1);
+			result.setForegroundColor( parseColor( buffer ));
+			result.setShadowAutomatic( buffer.getInt() == 1);
+			result.setShadowColor( parseColor( buffer ));
+			result.setOutlineAutomatic( buffer.getInt() == 1);
+			result.setOutlineColor( parseColor( buffer ));
 
-			final Boolean shadowEnabled = parseTristate( buffer.get() );
-			final Boolean outlineEnabled = parseTristate( buffer.get() );
-			final Boolean boldEnabled = parseTristate( buffer.get() );
-			final Boolean italicEnabled = parseTristate( buffer.get() );
-			final ScheduleEntry.HorizontalAlignment horizontalTextAlignment = parseHorizontalAlignment( buffer.get() );
-			final ScheduleEntry.VerticalAlignment verticalTextAlignment = parseVerticalAlignment( buffer.get() );
+			result.setShadowEnabled( parseTristate( buffer.get() ));
+			result.setOutlineEnabled( parseTristate( buffer.get() ));
+			result.setBoldEnabled( parseTristate( buffer.get() ));
+			result.setItalicEnabled( parseTristate( buffer.get() ));
+			result.setHorizontalTextAlignment( parseHorizontalAlignment( buffer.get() ));
+			result.setVerticalTextAlignment( parseVerticalAlignment( buffer.get() ));
 
-			final boolean defaultTextMargins = ( buffer.get() != 0 );
-			final int textMarginLeft = buffer.getInt();
-			final int textMarginTop = buffer.getInt();
-			final int textMarginRight = buffer.getInt();
-			final int textMarginBottom = buffer.getInt();
+			result.setDefaultTextMargins(( buffer.get() != 0 ));
+			result.setTextMarginLeft( buffer.getInt());
+			result.setTextMarginTop( buffer.getInt());
+			result.setTextMarginRight( buffer.getInt());
+			result.setTextMarginBottom( buffer.getInt());
 
 			notes = parsePaddedCString( buffer, 161, getCharset() );
 //			System.out.println( "Unknown (1316)" );
@@ -211,7 +215,6 @@ public class EwsParser
 			skip( buffer, 292 );
 		}
 
-		final ScheduleEntry result = new ScheduleEntry();
 		result.setTitle( title );
 		if ( !mediaResource.isEmpty() )
 		{
@@ -233,6 +236,9 @@ public class EwsParser
 		result.setType( type );
 		result.setNotes( notes );
 		result.setSongNumber( songNumber );
+
+		result.setCustomFontSettings(customFontSettings);
+		result.setFontSizeAutomatic(fontSizeAutomatic);
 
 		buffer.position( contentPointer );
 
@@ -268,74 +274,9 @@ public class EwsParser
 
 		if ( !defaultBackground )
 		{
-			final Background background;
-
-			if ( backgroundType == ScheduleEntry.BackgroundType.COLOR )
-			{
-				final ColorBackground colorBackground = new ColorBackground();
-				background = colorBackground;
-				colorBackground.setColor( backgroundColor );
-			}
-			else if ( backgroundType == ScheduleEntry.BackgroundType.GRADIENT )
-			{
-				final GradientBackground gradientBackground = new GradientBackground();
-				background = gradientBackground;
-				gradientBackground.setColor1( gradientColor1 );
-				gradientBackground.setColor2( gradientColor2 );
-				gradientBackground.setStyle( gradientStyle );
-				gradientBackground.setVariant( gradientVariant );
-			}
-			else if ( backgroundType == ScheduleEntry.BackgroundType.IMAGE_TILED || backgroundType == ScheduleEntry.BackgroundType.IMAGE_SCALED )
-			{
-				final ImageBackground imageBackground = new ImageBackground();
-				background = imageBackground;
-				imageBackground.setName( backgroundName );
-
-				if ( !backgroundName.isEmpty() )
-				{
-					final BinaryContent backgroundImage = parseBinaryContent( ScheduleEntry.Type.IMAGE, buffer );
-					imageBackground.setImage( backgroundImage );
-				}
-
-				imageBackground.setTiled( backgroundType == ScheduleEntry.BackgroundType.IMAGE_TILED );
-
-				if ( backgroundType == ScheduleEntry.BackgroundType.IMAGE_SCALED )
-				{
-					imageBackground.setAspectRatio( aspectRatio );
-				}
-			}
-			else if ( backgroundType == ScheduleEntry.BackgroundType.VIDEO )
-			{
-				final VideoBackground videoBackground = new VideoBackground();
-				background = videoBackground;
-				videoBackground.setName( backgroundName );
-
-				if ( !backgroundName.isEmpty() )
-				{
-					final BinaryContent previewImage = parseBinaryContent( ScheduleEntry.Type.IMAGE, buffer );
-					videoBackground.setImage( previewImage );
-
-					if ( mediaContentPointer > 0 )
-					{
-						final int position = buffer.position();
-						buffer.position( mediaContentPointer );
-						final BinaryContent video = parseBinaryContent( ScheduleEntry.Type.VIDEO, buffer );
-						videoBackground.setVideo( video );
-						buffer.position( position );
-					}
-				}
-			}
-			else if ( backgroundType == ScheduleEntry.BackgroundType.LIVE_VIDEO )
-			{
-				final LiveVideoBackground liveVideoBackground = new LiveVideoBackground();
-				background = liveVideoBackground;
-				liveVideoBackground.setName( backgroundName );
-
-			}
-			else
-			{
-				throw new IllegalArgumentException( "Unsupported background type: " + backgroundType );
-			}
+			final Background background = getBackground(buffer, backgroundType, backgroundColor,
+                                                        gradientColor1, gradientColor2, gradientStyle, gradientVariant,
+                                                        backgroundName, mediaContentPointer, aspectRatio);
 
 			result.setBackground( background );
 		}
@@ -355,6 +296,70 @@ public class EwsParser
 		buffer.position( start + size );
 		return result;
 	}
+
+	private Background getBackground(ByteBuffer buffer,
+                                     ScheduleEntry.BackgroundType backgroundType,
+                                     Color backgroundColor,
+                                     Color gradientColor1,
+                                     Color gradientColor2,
+                                     ScheduleEntry.GradientStyle gradientStyle,
+                                     ScheduleEntry.GradientVariant gradientVariant,
+                                     String backgroundName,
+                                     int mediaContentPointer,
+                                     ScheduleEntry.AspectRatio aspectRatio) {
+        switch (backgroundType) {
+            case COLOR:
+                final ColorBackground colorBackground = new ColorBackground();
+                colorBackground.setColor(backgroundColor);
+                return colorBackground;
+            case GRADIENT:
+                final GradientBackground gradientBackground = new GradientBackground();
+                gradientBackground.setColor1(gradientColor1);
+                gradientBackground.setColor2(gradientColor2);
+                gradientBackground.setStyle(gradientStyle);
+                gradientBackground.setVariant(gradientVariant);
+                return gradientBackground;
+            case IMAGE_TILED:
+            case IMAGE_SCALED:
+                final ImageBackground imageBackground = new ImageBackground();
+                imageBackground.setName(backgroundName);
+
+                if (!backgroundName.isEmpty()) {
+                    final BinaryContent backgroundImage = parseBinaryContent(ScheduleEntry.Type.IMAGE, buffer);
+                    imageBackground.setImage(backgroundImage);
+                }
+
+                imageBackground.setTiled(backgroundType == ScheduleEntry.BackgroundType.IMAGE_TILED);
+
+                if (backgroundType == ScheduleEntry.BackgroundType.IMAGE_SCALED) {
+                    imageBackground.setAspectRatio(aspectRatio);
+                }
+                return imageBackground;
+            case VIDEO:
+                final VideoBackground videoBackground = new VideoBackground();
+                videoBackground.setName(backgroundName);
+
+                if (!backgroundName.isEmpty()) {
+                    final BinaryContent previewImage = parseBinaryContent(ScheduleEntry.Type.IMAGE, buffer);
+                    videoBackground.setImage(previewImage);
+
+                    if (mediaContentPointer > 0) {
+                        final int position = buffer.position();
+                        buffer.position(mediaContentPointer);
+                        final BinaryContent video = parseBinaryContent(ScheduleEntry.Type.VIDEO, buffer);
+                        videoBackground.setVideo(video);
+                        buffer.position(position);
+                    }
+                }
+                return videoBackground;
+            case LIVE_VIDEO:
+                final LiveVideoBackground liveVideoBackground = new LiveVideoBackground();
+                liveVideoBackground.setName(backgroundName);
+                return liveVideoBackground;
+            default:
+                throw new IllegalArgumentException("Unsupported background type: " + backgroundType);
+        }
+    }
 
 	private Presentation parsePresentation( final ByteBuffer buffer )
 	{

@@ -16,6 +16,7 @@
  */
 package lithium.io.ews;
 
+import java.awt.*;
 import java.util.Date;
 
 /**
@@ -50,6 +51,29 @@ public class ScheduleEntry {
     private Background _background;
 
     private BinaryContent _thumbnailImage;
+
+    private boolean customFontSettings = false;
+    private boolean fontSizeAutomatic = true;
+    private int fontSize = 0;
+    private boolean useDefaultFont = true;
+    private String fontName = "";
+    private boolean foregroundAutomatic = true;
+    private Color foregroundColor = null;
+    private boolean shadowAutomatic = true;
+    private Color shadowColor = null;
+    private boolean outlineAutomatic = true;
+    private Color outlineColor = null;
+    private Boolean shadowEnabled = null;
+    private Boolean outlineEnabled = null;
+    private Boolean boldEnabled = null;
+    private Boolean italicEnabled = null;
+    private HorizontalAlignment horizontalTextAlignment = HorizontalAlignment.DEFAULT;
+    private VerticalAlignment verticalTextAlignment = VerticalAlignment.DEFAULT;
+    private boolean defaultTextMargins = true;
+    private int textMarginLeft = 0;
+    private int textMarginTop = 0;
+    private int textMarginRight = 0;
+    private int textMarginBottom = 0;
 
     /**
      * Constructs a new instance.
@@ -168,6 +192,182 @@ public class ScheduleEntry {
 
     public BinaryContent getThumbnailImage() {
         return _thumbnailImage;
+    }
+
+    public boolean isCustomFontSettings() {
+        return customFontSettings;
+    }
+
+    public void setCustomFontSettings(boolean customFontSettings) {
+        this.customFontSettings = customFontSettings;
+    }
+
+    public boolean isFontSizeAutomatic() {
+        return fontSizeAutomatic;
+    }
+
+    public void setFontSizeAutomatic(boolean fontSizeAutomatic) {
+        this.fontSizeAutomatic = fontSizeAutomatic;
+    }
+
+    public int getFontSize() {
+        return fontSize;
+    }
+
+    public void setFontSize(int fontSize) {
+        this.fontSize = fontSize;
+    }
+
+    public boolean isUseDefaultFont() {
+        return useDefaultFont;
+    }
+
+    public void setUseDefaultFont(boolean useDefaultFont) {
+        this.useDefaultFont = useDefaultFont;
+    }
+
+    public String getFontName() {
+        return fontName;
+    }
+
+    public void setFontName(String fontName) {
+        this.fontName = fontName;
+    }
+
+    public boolean isForegroundAutomatic() {
+        return foregroundAutomatic;
+    }
+
+    public void setForegroundAutomatic(boolean foregroundAutomatic) {
+        this.foregroundAutomatic = foregroundAutomatic;
+    }
+
+    public Color getForegroundColor() {
+        return foregroundColor;
+    }
+
+    public void setForegroundColor(Color foregroundColor) {
+        this.foregroundColor = foregroundColor;
+    }
+
+    public boolean isShadowAutomatic() {
+        return shadowAutomatic;
+    }
+
+    public void setShadowAutomatic(boolean shadowAutomatic) {
+        this.shadowAutomatic = shadowAutomatic;
+    }
+
+    public Color getShadowColor() {
+        return shadowColor;
+    }
+
+    public void setShadowColor(Color shadowColor) {
+        this.shadowColor = shadowColor;
+    }
+
+    public boolean isOutlineAutomatic() {
+        return outlineAutomatic;
+    }
+
+    public void setOutlineAutomatic(boolean outlineAutomatic) {
+        this.outlineAutomatic = outlineAutomatic;
+    }
+
+    public Color getOutlineColor() {
+        return outlineColor;
+    }
+
+    public void setOutlineColor(Color outlineColor) {
+        this.outlineColor = outlineColor;
+    }
+
+    public Boolean getShadowEnabled() {
+        return shadowEnabled;
+    }
+
+    public void setShadowEnabled(Boolean shadowEnabled) {
+        this.shadowEnabled = shadowEnabled;
+    }
+
+    public Boolean getOutlineEnabled() {
+        return outlineEnabled;
+    }
+
+    public void setOutlineEnabled(Boolean outlineEnabled) {
+        this.outlineEnabled = outlineEnabled;
+    }
+
+    public Boolean getBoldEnabled() {
+        return boldEnabled;
+    }
+
+    public void setBoldEnabled(Boolean boldEnabled) {
+        this.boldEnabled = boldEnabled;
+    }
+
+    public Boolean getItalicEnabled() {
+        return italicEnabled;
+    }
+
+    public void setItalicEnabled(Boolean italicEnabled) {
+        this.italicEnabled = italicEnabled;
+    }
+
+    public HorizontalAlignment getHorizontalTextAlignment() {
+        return horizontalTextAlignment;
+    }
+
+    public void setHorizontalTextAlignment(HorizontalAlignment horizontalTextAlignment) {
+        this.horizontalTextAlignment = horizontalTextAlignment;
+    }
+
+    public VerticalAlignment getVerticalTextAlignment() {
+        return verticalTextAlignment;
+    }
+
+    public void setVerticalTextAlignment(VerticalAlignment verticalTextAlignment) {
+        this.verticalTextAlignment = verticalTextAlignment;
+    }
+
+    public boolean isDefaultTextMargins() {
+        return defaultTextMargins;
+    }
+
+    public void setDefaultTextMargins(boolean defaultTextMargins) {
+        this.defaultTextMargins = defaultTextMargins;
+    }
+
+    public int getTextMarginLeft() {
+        return textMarginLeft;
+    }
+
+    public void setTextMarginLeft(int textMarginLeft) {
+        this.textMarginLeft = textMarginLeft;
+    }
+
+    public int getTextMarginTop() {
+        return textMarginTop;
+    }
+
+    public void setTextMarginTop(int textMarginTop) {
+        this.textMarginTop = textMarginTop;
+    }
+
+    public int getTextMarginRight() {
+        return textMarginRight;
+    }
+
+    public void setTextMarginRight(int textMarginRight) {
+        this.textMarginRight = textMarginRight;
+    }
+
+    public int getTextMarginBottom() {
+        return textMarginBottom;
+    }
+
+    public void setTextMarginBottom(int textMarginBottom) {
+        this.textMarginBottom = textMarginBottom;
     }
 
     public enum Type {

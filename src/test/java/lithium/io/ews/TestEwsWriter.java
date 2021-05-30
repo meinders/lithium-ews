@@ -194,8 +194,11 @@ public class TestEwsWriter
     public void testWriteAndThenReadScheduleFile() throws IOException {
         // Write
         Schedule writeSchedule = new Schedule();
-        writeSchedule.getEntries().add(TestUtils.createEntry("Leeg", "first sentence 1\n" +
-                                                                     "next sentence has a special char: é\n"));
+        ScheduleEntry entry1 = TestUtils.createEntry("Leeg", "first sentence 1\n" +
+                                                           "next sentence has a special char: é\n");
+        entry1.setOutlineAutomatic(true);
+        entry1.setOutlineColor(Color.RED);
+        writeSchedule.getEntries().add(entry1);
 
         Path tempOutputPath = Files.createTempFile("tmpOutput", ".ews");
         File tempOutputFile = tempOutputPath.toFile();
@@ -222,6 +225,8 @@ public class TestEwsWriter
         assertEquals("first sentence 1\n" +
                      "next sentence has a special char: é",
                      TestUtils.getTextFromContent((TextContent) content1).replace("\r", "").trim());
+        assertTrue(readSchedule.getEntries().get(0).isOutlineAutomatic());
+        assertEquals(Color.RED, readSchedule.getEntries().get(0).getOutlineColor());
     }
 
     public void testWriteScheduleWithBackgroundColor() throws IOException {

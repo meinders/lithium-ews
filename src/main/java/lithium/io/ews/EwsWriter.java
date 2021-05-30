@@ -117,30 +117,31 @@ public class EwsWriter {
         writeZeroes(15);    // Skip
         _out.write(ScheduleEntry.Type.PRESENTATION.equals(entry.getType()) ? 1 : 0);          // isPresentation
         writeInt(0);            // presentationLength
-        _out.write(0);          // customFontSettings
-        _out.write(1);          // fontSizeAutomatic
+
+        _out.write(entry.isCustomFontSettings() ? 1 : 0);          // customFontSettings
+        _out.write(entry.isFontSizeAutomatic() ? 1 : 0);          // fontSizeAutomatic
         _out.write(0);          // Skip
         _out.write(0);          // Skip
-        writeInt(0);            // fontSize limit
-        _out.write(1);          // useDefaultFont
-        writeZeroes(255);   // fontName
-        writeInt(1);            // foregroundAutomatic
-        writeInt(0);            // foregroundColor
-        writeInt(1);            // shadowAutomatic
-        writeInt(0);            // shadowColor
-        writeInt(1);            // outlineAutomatic
-        writeInt(0);            // outlineColor
-        _out.write(parseTristate(null));    // shadowEnabled
-        _out.write(parseTristate(null));    // outlineEnabled
-        _out.write(parseTristate(null));    // boldEnabled
-        _out.write(parseTristate(null));    // italicEnabled
-        _out.write(parseHorizontalAlignment(ScheduleEntry.HorizontalAlignment.DEFAULT));    // horizontalTextAlignment
-        _out.write(parseVerticalAlignment(ScheduleEntry.VerticalAlignment.DEFAULT));        // verticalTextAlignment
-        _out.write(1);          // defaultTextMargins
-        writeInt(0);            // textMarginLeft
-        writeInt(0);            // textMarginTop
-        writeInt(0);            // textMarginRight
-        writeInt(0);            // textMarginBottom
+        writeInt(entry.getFontSize());            // fontSize limit
+        _out.write(entry.isUseDefaultFont() ? 1 : 0);          // useDefaultFont
+        writePaddedString(entry.getFontName(), 255);   // fontName
+        writeInt(entry.isForegroundAutomatic() ? 1 : 0);            // foregroundAutomatic
+        writeInt(parseColor(entry.getForegroundColor()));            // foregroundColor
+        writeInt(entry.isShadowAutomatic() ? 1 : 0);            // shadowAutomatic
+        writeInt(parseColor(entry.getShadowColor()));            // shadowColor
+        writeInt(entry.isOutlineAutomatic() ? 1 : 0);            // outlineAutomatic
+        writeInt(parseColor(entry.getOutlineColor()));            // outlineColor
+        _out.write(parseTristate(entry.getShadowEnabled()));    // shadowEnabled
+        _out.write(parseTristate(entry.getOutlineEnabled()));    // outlineEnabled
+        _out.write(parseTristate(entry.getBoldEnabled()));    // boldEnabled
+        _out.write(parseTristate(entry.getItalicEnabled()));    // italicEnabled
+        _out.write(parseHorizontalAlignment(entry.getHorizontalTextAlignment()));    // horizontalTextAlignment
+        _out.write(parseVerticalAlignment(entry.getVerticalTextAlignment()));        // verticalTextAlignment
+        _out.write(entry.isDefaultTextMargins() ? 1 : 0);          // defaultTextMargins
+        writeInt(entry.getTextMarginLeft());            // textMarginLeft
+        writeInt(entry.getTextMarginTop());            // textMarginTop
+        writeInt(entry.getTextMarginRight());            // textMarginRight
+        writeInt(entry.getTextMarginBottom());            // textMarginBottom
 
         // More song information
         writePaddedString(entry.getNotes(), 161);
