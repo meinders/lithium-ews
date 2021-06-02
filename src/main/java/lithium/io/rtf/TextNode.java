@@ -23,30 +23,35 @@ package lithium.io.rtf;
  * @author Gerrit Meinders
  */
 public class TextNode
-	extends AbstractRtfNode
-{
-	private String _text;
+        extends AbstractRtfNode {
+    private String _text;
 
-	/**
-	 * Constructs a new instance.
-	 */
-	public TextNode()
-	{
-	}
+    /**
+     * Constructs a new instance.
+     */
+    public TextNode() {
+    }
 
-	public String getText()
-	{
-		return _text;
-	}
+    public TextNode(String text) {
+        setText(text);
+    }
 
-	public void setText( String text )
-	{
-		_text = text;
-	}
+    public String getText() {
+        return _text;
+    }
 
-	@Override
-	public void accept( RtfVisitor visitor )
-	{
-		visitor.visitText( this );
-	}
+    public void setText(String text) {
+        _text = text;
+    }
+
+    @Override
+    public void accept(RtfVisitor visitor) {
+        visitor.visitText(this);
+    }
+
+    @Override
+    public String toString()
+    {
+        return super.toString() + "[text=" + _text+ "]";
+    }
 }

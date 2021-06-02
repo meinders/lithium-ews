@@ -16,10 +16,12 @@
  */
 package lithium.io.ews;
 
+import java.awt.*;
 import java.io.*;
-import java.nio.*;
-import java.nio.charset.*;
-import java.util.*;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import java.util.Calendar;
+import java.util.Date;
 
 /**
  * Various functions for loading, parsing and visualizing data.
@@ -127,13 +129,13 @@ class Tools
 		return calendar.getTime();
 	}
 
-	static int parseColor( final ByteBuffer buffer )
+	static Color parseColor(final ByteBuffer buffer)
 	{
-		final int rgba = buffer.getInt();
-		final int bgra = ( rgba & 0x000000ff ) >> 16 |
-		                 ( rgba & 0x00ff0000 ) << 16 |
-		                 ( rgba & 0xff00ff00 );
-		return bgra;
+		final int bgra = buffer.getInt();
+		final int rgb = ( bgra & 0x000000ff ) << 16 |
+		                 ( bgra & 0x0000ff00 ) |
+		                 ( bgra & 0x00ff0000 ) >> 16;
+		return new Color(rgb, false);
 	}
 
 	static long toLongBE( final byte[] data )

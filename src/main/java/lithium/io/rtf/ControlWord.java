@@ -38,6 +38,13 @@ public class ControlWord
 	{
 	}
 
+	public ControlWord(final String word, final Integer numericParameter, final boolean delimitedBySpace)
+	{
+		setWord(word);
+		setNumericParameter(numericParameter);
+		setDelimitedBySpace(delimitedBySpace);
+	}
+
 	public void setWord( final String word )
 	{
 		_word = word;

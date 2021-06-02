@@ -24,24 +24,24 @@ import java.awt.*;
  * @author Gerrit Meinders
  */
 public class ColorBackground
-	implements Background
-{
-	private Color _color;
+        implements Background {
+    private Color _color;
 
-	/**
-	 * Constructs a new instance.
-	 */
-	public ColorBackground()
-	{
-	}
+    /**
+     * Constructs a new instance.
+     */
+    public ColorBackground() {
+    }
 
-	public void setColor( Color color )
-	{
-		_color = color;
-	}
+    public ColorBackground(Color color) {
+        setColor(color);
+    }
 
-	public Color getColor()
-	{
-		return _color;
-	}
+    public void setColor(Color color) {
+        _color = color;
+    }
+
+    public Color getColor() {
+        return _color;
+    }
 }

@@ -17,7 +17,9 @@
 
 package lithium.io.rtf;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * RTF group.
@@ -25,56 +27,52 @@ import java.util.*;
  * @author Gerrit Meinders
  */
 public class RtfGroup
-	extends AbstractRtfNode
-{
-	private final List<RtfNode> _nodes = new ArrayList<RtfNode>();
+        extends AbstractRtfNode {
+    private final List<RtfNode> _nodes = new ArrayList<RtfNode>();
 
-	/**
-	 * Constructs a new instance.
-	 */
-	public RtfGroup()
-	{
-	}
+    /**
+     * Constructs a new instance.
+     */
+    public RtfGroup() {
+    }
 
-	public List<RtfNode> getNodes()
-	{
-		return Collections.unmodifiableList( _nodes );
-	}
+    public RtfGroup(List<RtfNode> nodes) {
+        for (RtfNode node : nodes) {
+            addNode(node);
+        }
+    }
 
-	public void addNode( RtfNode node )
-	{
-		node.setParent( this );
-		_nodes.add( node );
-	}
+    public List<RtfNode> getNodes() {
+        return Collections.unmodifiableList(_nodes);
+    }
 
-	public void removeNode( RtfNode node )
-	{
-		node.setParent( null );
-		_nodes.remove( node );
-	}
+    public void addNode(RtfNode node) {
+        node.setParent(this);
+        _nodes.add(node);
+    }
 
-	public void removeAllNodes()
-	{
-		_nodes.clear();
-	}
+    public void removeNode(RtfNode node) {
+        node.setParent(null);
+        _nodes.remove(node);
+    }
 
-	@Override
-	public void accept( final RtfVisitor visitor )
-	{
-		final RtfVisitor.VisitResult visitResult = visitor.groupStart( this );
-		if ( visitResult == RtfVisitor.VisitResult.CONTINUE )
-		{
-			for ( final RtfNode node : _nodes )
-			{
-				node.accept( visitor );
-			}
-		}
-		visitor.groupEnd( this );
-	}
+    public void removeAllNodes() {
+        _nodes.clear();
+    }
 
-	@Override
-	public String toString()
-	{
-		return super.toString() + "[nodes=" + _nodes + "]";
-	}
+    @Override
+    public void accept(final RtfVisitor visitor) {
+        final RtfVisitor.VisitResult visitResult = visitor.groupStart(this);
+        if (visitResult == RtfVisitor.VisitResult.CONTINUE) {
+            for (final RtfNode node : _nodes) {
+                node.accept(visitor);
+            }
+        }
+        visitor.groupEnd(this);
+    }
+
+    @Override
+    public String toString() {
+        return super.toString() + "[nodes=" + _nodes + "]";
+    }
 }

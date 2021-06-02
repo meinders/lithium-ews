@@ -23,30 +23,29 @@ package lithium.io.ews;
  * @author Gerrit Meinders
  */
 public class BinaryContent
-implements Content
-{
-	private byte[] _bytes;
+        implements Content {
+    private byte[] _bytes;
 
-	/**
-	 * Constructs a new instance.
-	 */
-	public BinaryContent()
-	{
-	}
+    /**
+     * Constructs a new instance.
+     */
+    public BinaryContent() {
+    }
 
-	public void setBytes( final byte[] bytes )
-	{
-		_bytes = bytes;
-	}
+    public BinaryContent(final byte[] bytes) {
+        setBytes(bytes);
+    }
 
-	public byte[] getBytes()
-	{
-		return _bytes;
-	}
+    public void setBytes(final byte[] bytes) {
+        _bytes = bytes;
+    }
 
-	@Override
-	public String toString()
-	{
-		return super.toString() + "[length=" + _bytes.length + "]";
-	}
+    public byte[] getBytes() {
+        return _bytes;
+    }
+
+    @Override
+    public String toString() {
+        return super.toString() + "[length=" + _bytes.length + "]";
+    }
 }

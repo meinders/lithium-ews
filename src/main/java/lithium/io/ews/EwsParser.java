@@ -16,15 +16,22 @@
  */
 package lithium.io.ews;
 
-import java.awt.*;
-import java.io.*;
-import java.nio.*;
-import java.nio.charset.*;
-import java.util.*;
-import java.util.List;
-import java.util.zip.*;
+import lithium.io.Config;
+import lithium.io.rtf.RtfGroup;
+import lithium.io.rtf.RtfParser;
 
-import lithium.io.rtf.*;
+import java.awt.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.charset.Charset;
+import java.util.Date;
+import java.util.List;
+import java.util.zip.Adler32;
+import java.util.zip.CheckedInputStream;
+import java.util.zip.Checksum;
+import java.util.zip.InflaterInputStream;
 
 import static lithium.io.ews.Tools.*;
 
@@ -35,7 +42,7 @@ import static lithium.io.ews.Tools.*;
  */
 public class EwsParser
 {
-	private Charset _charset = Charset.defaultCharset();
+	private Charset _charset = Charset.forName(Config.charset);
 
 	private int _index = 1;
 
@@ -114,9 +121,9 @@ public class EwsParser
 		skip( buffer, 1 );
 		final boolean defaultBackground = ( buffer.get() != 0 );
 		final ScheduleEntry.BackgroundType backgroundType = parseBackgroundType( buffer.getInt() );
-		final Color backgroundColor = new Color( parseColor( buffer ), false );
-		final Color gradientColor1 = new Color( parseColor( buffer ), false );
-		final Color gradientColor2 = new Color( parseColor( buffer ), false );
+		final Color backgroundColor = parseColor( buffer );
+		final Color gradientColor1 = parseColor( buffer );
+		final Color gradientColor2 = parseColor( buffer );
 		final ScheduleEntry.GradientStyle gradientStyle = parseGradientStyle( buffer.get() );
 		final ScheduleEntry.GradientVariant gradientVariant = parseGradientVariant( buffer.get() );
 		skip( buffer, 6 );
@@ -159,11 +166,11 @@ public class EwsParser
 			final String fontName = parsePaddedCString( buffer, 255, getCharset() );
 
 			final boolean foregroundAutomatic = buffer.getInt() == 1;
-			final Color foregroundColor = new Color( parseColor( buffer ), false );
+			final Color foregroundColor = parseColor( buffer );
 			final boolean shadowAutomatic = buffer.getInt() == 1;
-			final Color shadowColor = new Color( parseColor( buffer ), false );
+			final Color shadowColor = parseColor( buffer );
 			final boolean outlineAutomatic = buffer.getInt() == 1;
-			final Color outlineColor = new Color( parseColor( buffer ), false );
+			final Color outlineColor = parseColor( buffer );
 
 			final Boolean shadowEnabled = parseTristate( buffer.get() );
 			final Boolean outlineEnabled = parseTristate( buffer.get() );
@@ -317,11 +324,6 @@ public class EwsParser
 						buffer.position( position );
 					}
 				}
-
-				if ( backgroundType == ScheduleEntry.BackgroundType.IMAGE_SCALED )
-				{
-					videoBackground.setAspectRatio( aspectRatio );
-				}
 			}
 			else if ( backgroundType == ScheduleEntry.BackgroundType.LIVE_VIDEO )
 			{
@@ -329,10 +331,6 @@ public class EwsParser
 				background = liveVideoBackground;
 				liveVideoBackground.setName( backgroundName );
 
-				if ( backgroundType == ScheduleEntry.BackgroundType.IMAGE_SCALED )
-				{
-					liveVideoBackground.setAspectRatio( aspectRatio );
-				}
 			}
 			else
 			{

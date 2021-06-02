@@ -22,60 +22,65 @@ package lithium.io.ews;
  * @author Gerrit Meinders
  */
 public class ImageBackground
-	implements Background
-{
-	private String _name;
+        implements Background {
+    private String _name = "";
 
-	private BinaryContent _image;
+    private BinaryContent _image;
 
-	private boolean _tiled;
+    private boolean _tiled = false;
 
-	private ScheduleEntry.AspectRatio _aspectRatio;
+    private ScheduleEntry.AspectRatio _aspectRatio = ScheduleEntry.AspectRatio.STRETCH;
 
-	/**
-	 * Constructs a new instance.
-	 */
-	public ImageBackground()
-	{
-	}
+    /**
+     * Constructs a new instance.
+     */
+    public ImageBackground() {
+    }
 
-	public void setName( String name )
-	{
-		_name = name;
-	}
+    public ImageBackground(String name, final byte[] bytes) {
+        setName(name);
+        setImage(new BinaryContent(bytes));
+    }
 
-	public String getName()
-	{
-		return _name;
-	}
+    public ImageBackground(String name, BinaryContent image) {
+        setName(name);
+        setImage(image);
+    }
 
-	public void setImage( BinaryContent image )
-	{
-		_image = image;
-	}
+    public void setName(String name) {
+        _name = name;
+    }
 
-	public BinaryContent getImage()
-	{
-		return _image;
-	}
+    public String getName() {
+        return _name;
+    }
 
-	public void setTiled( boolean tiled )
-	{
-		_tiled = tiled;
-	}
+    public void setImage(BinaryContent image) {
+        _image = image;
+    }
 
-	public boolean isTiled()
-	{
-		return _tiled;
-	}
+    public BinaryContent getImage() {
+        return _image;
+    }
 
-	public void setAspectRatio( ScheduleEntry.AspectRatio aspectRatio )
-	{
-		_aspectRatio = aspectRatio;
-	}
+    public void setTiled(boolean tiled) {
+        _tiled = tiled;
+    }
 
-	public ScheduleEntry.AspectRatio getAspectRatio()
-	{
-		return _aspectRatio;
-	}
+    public boolean isTiled() {
+        return _tiled;
+    }
+
+    public void setAspectRatio(ScheduleEntry.AspectRatio aspectRatio) {
+        _aspectRatio = aspectRatio;
+    }
+
+    public ScheduleEntry.AspectRatio getAspectRatio() {
+        return _aspectRatio;
+    }
+
+    @Override
+    public String toString() {
+        return super.toString() + "[name=" + _name + ",tiled=" + _tiled + ",aspectRatio=" + _aspectRatio + "]";
+    }
 }

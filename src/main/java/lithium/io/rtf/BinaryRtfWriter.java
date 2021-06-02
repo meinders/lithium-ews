@@ -16,8 +16,11 @@
  */
 package lithium.io.rtf;
 
-import java.io.*;
-import java.nio.charset.*;
+import lithium.io.Config;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.Charset;
 
 /**
  * Writes an RTF document to a binary stream.
@@ -34,7 +37,7 @@ class BinaryRtfWriter
 	 */
 	public BinaryRtfWriter( final OutputStream stream )
 	{
-		final Charset charset = Charset.forName( "US-ASCII" );
+		final Charset charset = Charset.forName(Config.charset);
 		_writer = new VariableCharsetWriter( stream, charset );
 	}
 
@@ -45,7 +48,7 @@ class BinaryRtfWriter
 		{
 			if ( "ansi".equals( controlWord.getWord() ) )
 			{
-				_writer.setCharset( Charset.forName( "US-ASCII" ) );
+				_writer.setCharset( Charset.forName(Config.charset) );
 			}
 			else if ( "mac".equals( controlWord.getWord() ) || "pc".equals( controlWord.getWord() ) || "pca".equals( controlWord.getWord() ) )
 			{
