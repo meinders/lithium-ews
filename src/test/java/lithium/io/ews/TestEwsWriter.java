@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 Gerrit Meinders
+ * Copyright 2013-2021 Gerrit Meinders
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,19 +17,16 @@
 
 package lithium.io.ews;
 
-import junit.framework.TestCase;
 import lithium.io.Config;
 import lithium.io.rtf.RtfGroup;
 import lithium.io.rtf.TextNode;
+import org.junit.*;
+import static org.junit.Assert.*;
 
 import java.awt.*;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 /**
  * Test case for {@link EwsParser}.
@@ -38,8 +35,8 @@ import java.nio.file.Path;
  */
 
 public class TestEwsWriter
-        extends TestCase {
-
+{
+    @Test
     public void testWriteScheduleFile() throws IOException {
         TextNode rtfNode1 = new TextNode();
         rtfNode1.setText("zin 1\n" +
@@ -111,16 +108,13 @@ public class TestEwsWriter
         schedule.getEntries().add(scheduleEntry1);
         schedule.getEntries().add(scheduleEntry2);
 
-        Path tempOutputPath = Files.createTempFile("tmpOutput", ".ews");
-        File tempOutputFile = tempOutputPath.toFile();
-        tempOutputFile.deleteOnExit();
-
-        final EwsWriter writer = new EwsWriter(tempOutputFile);
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        final EwsWriter writer = new EwsWriter( out );
         writer.setCharset(Charset.forName("windows-1252"));
         writer.write(schedule);
         writer.close();
 
-        final byte[] scheduleFileActual = Tools.load(new FileInputStream(tempOutputFile));
+        final byte[] scheduleFileActual = out.toByteArray();
         final byte[] scheduleFileExpected = Tools.loadResource(getClass(), "output1.ews");
 
         assertEquals(scheduleFileExpected.length, scheduleFileActual.length);
@@ -129,6 +123,7 @@ public class TestEwsWriter
         }
     }
 
+    @Test
     public void testWriteScheduleFileWithBoilerplate() throws IOException {
         Schedule schedule = new Schedule();
         schedule.getEntries().add(TestUtils.createEntry("Leeg", "zin 1\n" +
@@ -173,16 +168,13 @@ public class TestEwsWriter
                                                                      "God kent die wandelt in het rechte spoor,\n" +
                                                                      "wie Hem verlaat gaat dwalende teloor.\n"));
 
-        Path tempOutputPath = Files.createTempFile("tmpOutput", ".ews");
-        File tempOutputFile = tempOutputPath.toFile();
-        tempOutputFile.deleteOnExit();
-
-        final EwsWriter writer = new EwsWriter(tempOutputFile);
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        final EwsWriter writer = new EwsWriter( out );
         writer.setCharset(Charset.forName("windows-1252"));
         writer.write(schedule);
         writer.close();
 
-        final byte[] scheduleFileActual = Tools.load(new FileInputStream(tempOutputFile));
+        final byte[] scheduleFileActual = out.toByteArray();
         final byte[] scheduleFileExpected = Tools.loadResource(getClass(), "output3.ews");
 
         assertEquals(scheduleFileExpected.length, scheduleFileActual.length);
@@ -191,23 +183,21 @@ public class TestEwsWriter
         }
     }
 
+    @Test
     public void testWriteAndThenReadScheduleFile() throws IOException {
         // Write
         Schedule writeSchedule = new Schedule();
         writeSchedule.getEntries().add(TestUtils.createEntry("Leeg", "first sentence 1\n" +
                                                                      "next sentence has a special char: é\n"));
 
-        Path tempOutputPath = Files.createTempFile("tmpOutput", ".ews");
-        File tempOutputFile = tempOutputPath.toFile();
-        tempOutputFile.deleteOnExit();
-
-        final EwsWriter writer = new EwsWriter(tempOutputFile);
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        final EwsWriter writer = new EwsWriter( out );
         writer.setCharset(Charset.forName(Config.charset));
         writer.write(writeSchedule);
         writer.close();
 
         // Read
-        final byte[] scheduleFileActual = Tools.load(new FileInputStream(tempOutputFile));
+        final byte[] scheduleFileActual = out.toByteArray();
 
         EwsParser parser = new EwsParser();
         parser.setCharset(Charset.forName(Config.charset));
@@ -224,6 +214,7 @@ public class TestEwsWriter
                      TestUtils.getTextFromContent((TextContent) content1).replace("\r", "").trim());
     }
 
+    @Test
     public void testWriteScheduleWithBackgroundColor() throws IOException {
         // Write
         Color color = new Color(100, 200, 255);
@@ -233,16 +224,13 @@ public class TestEwsWriter
         Schedule writeSchedule = new Schedule();
         writeSchedule.getEntries().add(entry1);
 
-        Path tempOutputPath = Files.createTempFile("tmpOutput", ".ews");
-        File tempOutputFile = tempOutputPath.toFile();
-        tempOutputFile.deleteOnExit();
-
-        final EwsWriter writer = new EwsWriter(tempOutputFile);
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        final EwsWriter writer = new EwsWriter( out );
         writer.write(writeSchedule);
         writer.close();
 
         // Read
-        final byte[] scheduleFileActual = Tools.load(new FileInputStream(tempOutputFile));
+        final byte[] scheduleFileActual = out.toByteArray();
 
         EwsParser parser = new EwsParser();
         Schedule readSchedule = parser.parse(ByteBuffer.wrap(scheduleFileActual));
@@ -251,6 +239,7 @@ public class TestEwsWriter
         assertEquals(color, background.getColor());
     }
 
+    @Test
     public void testWriteScheduleWithBackgroundImage() throws IOException {
         // Write
         final byte[] image = Tools.loadResource(getClass(), "image1.jpg");
@@ -261,16 +250,13 @@ public class TestEwsWriter
         Schedule writeSchedule = new Schedule();
         writeSchedule.getEntries().add(entry1);
 
-        Path tempOutputPath = Files.createTempFile("tmpOutput", ".ews");
-        File tempOutputFile = tempOutputPath.toFile();
-        tempOutputFile.deleteOnExit();
-
-        final EwsWriter writer = new EwsWriter(tempOutputFile);
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        final EwsWriter writer = new EwsWriter( out );
         writer.write(writeSchedule);
         writer.close();
 
         // Read
-        final byte[] scheduleFileActual = Tools.load(new FileInputStream(tempOutputFile));
+        final byte[] scheduleFileActual = out.toByteArray();
 
         EwsParser parser = new EwsParser();
         Schedule readSchedule = parser.parse(ByteBuffer.wrap(scheduleFileActual));
@@ -283,6 +269,7 @@ public class TestEwsWriter
         }
     }
 
+    @Test
     public void testWriteScheduleWithBackgroundVideo() throws IOException {
         // Write
         final byte[] image = Tools.loadResource(getClass(), "image1.jpg");
@@ -294,16 +281,13 @@ public class TestEwsWriter
         Schedule writeSchedule = new Schedule();
         writeSchedule.getEntries().add(entry1);
 
-        Path tempOutputPath = Files.createTempFile("tmpOutput", ".ews");
-        File tempOutputFile = tempOutputPath.toFile();
-        tempOutputFile.deleteOnExit();
-
-        final EwsWriter writer = new EwsWriter(tempOutputFile);
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        final EwsWriter writer = new EwsWriter( out );
         writer.write(writeSchedule);
         writer.close();
 
         // Read
-        final byte[] scheduleFileActual = Tools.load(new FileInputStream(tempOutputFile));
+        final byte[] scheduleFileActual = out.toByteArray();
 
         EwsParser parser = new EwsParser();
         Schedule readSchedule = parser.parse(ByteBuffer.wrap(scheduleFileActual));
