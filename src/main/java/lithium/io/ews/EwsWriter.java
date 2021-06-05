@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 Gerrit Meinders
+ * Copyright 2013-2021 Gerrit Meinders
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,7 +32,8 @@ import java.util.zip.DeflaterOutputStream;
  *
  * @author Gerrit Meinders
  */
-public class EwsWriter {
+public class EwsWriter
+{
     private static final int SCHEDULE_ENTRY_LENGTH = 1816;
 
     private final OutputStream _out;
@@ -41,11 +42,6 @@ public class EwsWriter {
 
     public EwsWriter(final OutputStream out) {
         _out = out;
-    }
-
-    public EwsWriter(final File file) throws IOException {
-        file.createNewFile();
-        _out = new FileOutputStream(file);
     }
 
     public Charset getCharset() {
@@ -400,11 +396,6 @@ public class EwsWriter {
             _out.write(bytes);
             writeZeroes(length - bytes.length);
         }
-    }
-
-    public void close()
-            throws IOException {
-        _out.close();
     }
 
     private int parseBackgroundType(ScheduleEntry.BackgroundType value) {

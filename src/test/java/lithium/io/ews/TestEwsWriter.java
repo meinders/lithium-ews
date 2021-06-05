@@ -112,7 +112,6 @@ public class TestEwsWriter
         final EwsWriter writer = new EwsWriter( out );
         writer.setCharset(Charset.forName("windows-1252"));
         writer.write(schedule);
-        writer.close();
 
         final byte[] scheduleFileActual = out.toByteArray();
         final byte[] scheduleFileExpected = Tools.loadResource(getClass(), "output1.ews");
@@ -172,7 +171,6 @@ public class TestEwsWriter
         final EwsWriter writer = new EwsWriter( out );
         writer.setCharset(Charset.forName("windows-1252"));
         writer.write(schedule);
-        writer.close();
 
         final byte[] scheduleFileActual = out.toByteArray();
         final byte[] scheduleFileExpected = Tools.loadResource(getClass(), "output3.ews");
@@ -194,7 +192,6 @@ public class TestEwsWriter
         final EwsWriter writer = new EwsWriter( out );
         writer.setCharset(Charset.forName(Config.charset));
         writer.write(writeSchedule);
-        writer.close();
 
         // Read
         final byte[] scheduleFileActual = out.toByteArray();
@@ -227,7 +224,6 @@ public class TestEwsWriter
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         final EwsWriter writer = new EwsWriter( out );
         writer.write(writeSchedule);
-        writer.close();
 
         // Read
         final byte[] scheduleFileActual = out.toByteArray();
@@ -253,7 +249,6 @@ public class TestEwsWriter
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         final EwsWriter writer = new EwsWriter( out );
         writer.write(writeSchedule);
-        writer.close();
 
         // Read
         final byte[] scheduleFileActual = out.toByteArray();
@@ -284,7 +279,6 @@ public class TestEwsWriter
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         final EwsWriter writer = new EwsWriter( out );
         writer.write(writeSchedule);
-        writer.close();
 
         // Read
         final byte[] scheduleFileActual = out.toByteArray();
