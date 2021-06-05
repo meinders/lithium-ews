@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 Gerrit Meinders
+ * Copyright 2013-2021 Gerrit Meinders
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,28 +16,32 @@
  */
 package lithium.io.rtf;
 
-import lithium.io.Config;
+import java.io.*;
+import java.nio.charset.*;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.charset.Charset;
+import lithium.io.*;
 
 /**
  * Writes an RTF document to a binary stream.
  *
  * @author Gerrit Meinders
  */
-class BinaryRtfWriter
-	extends RtfWriter
+public class BinaryRtfWriter
+extends RtfWriter
 {
+	/**
+	 * Underlying writer.
+	 */
 	private final VariableCharsetWriter _writer;
 
 	/**
 	 * Constructs a new instance.
+	 *
+	 * @param stream Stream to write to.
 	 */
 	public BinaryRtfWriter( final OutputStream stream )
 	{
-		final Charset charset = Charset.forName(Config.charset);
+		final Charset charset = Charset.forName( Config.charset );
 		_writer = new VariableCharsetWriter( stream, charset );
 	}
 
@@ -46,20 +50,43 @@ class BinaryRtfWriter
 	{
 		try
 		{
+			String charsetName = null;
 			if ( "ansi".equals( controlWord.getWord() ) )
 			{
-				_writer.setCharset( Charset.forName(Config.charset) );
+				charsetName = Config.charset;
 			}
-			else if ( "mac".equals( controlWord.getWord() ) || "pc".equals( controlWord.getWord() ) || "pca".equals( controlWord.getWord() ) )
+			else if ( "mac".equals( controlWord.getWord() ) )
 			{
+				// TODO: Which (legacy) Mac code page does this indicate? MacRoman?
 				System.err.println( "WARNING: Found code page '" + controlWord.getWord() + "', which is not supported." );
+			}
+			else if ( "pc".equals( controlWord.getWord() ) )
+			{
+				charsetName = "Cp437";
+			}
+			else if ( "pca".equals( controlWord.getWord() ) )
+			{
+				charsetName = "Cp850";
 			}
 			else if ( "cpg".equals( controlWord.getWord() ) )
 			{
-				System.err.println( "WARNING: Found 'cpg' control word (for code page '" + controlWord.getNumericParameter() + "'), which is not supported." );
+				//noinspection InjectedReferences
+				charsetName = "Cp" + controlWord.getNumericParameter();
+			}
+
+			if ( charsetName != null )
+			{
+				try
+				{
+					_writer.setCharset( Charset.forName( charsetName ) );
+				}
+				catch ( final UnsupportedCharsetException e )
+				{
+					System.err.println( "WARNING: Unsupported character set '" + charsetName + "' (for '" + controlWord.getWord() + ( controlWord.getNumericParameter() == null ? "" : String.valueOf( controlWord.getNumericParameter() ) ) + "' control word)" );
+				}
 			}
 		}
-		catch ( IOException e )
+		catch ( final IOException e )
 		{
 			throw new RuntimeException( e );
 		}
@@ -69,20 +96,25 @@ class BinaryRtfWriter
 
 	@Override
 	public void write( final char c )
-		throws IOException
+	throws IOException
 	{
-		_writer.write( (int)c );
+		_writer.write( c );
 	}
 
 	@Override
 	public void write( final String s )
-		throws IOException
+	throws IOException
 	{
 		_writer.write( s );
 	}
 
+	/**
+	 * Flushes the underlying writer.
+	 *
+	 * @throws IOException if an I/O error occurs.
+	 */
 	public void flush()
-		throws IOException
+	throws IOException
 	{
 		_writer.flush();
 	}
