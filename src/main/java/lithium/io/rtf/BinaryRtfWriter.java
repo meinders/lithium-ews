@@ -68,7 +68,8 @@ extends RtfWriter
 			{
 				charsetName = "Cp850";
 			}
-			else if ( "cpg".equals( controlWord.getWord() ) )
+			else if ( "ansicpg".equals( controlWord.getWord() ) || // inside header section
+			          "cpg".equals( controlWord.getWord() ) ) // inside font table group
 			{
 				//noinspection InjectedReferences
 				charsetName = "Cp" + controlWord.getNumericParameter();
