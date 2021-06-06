@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 Gerrit Meinders
+ * Copyright 2013-2021 Gerrit Meinders
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,10 +18,9 @@ package lithium.io.ews;
 
 import java.awt.*;
 import java.io.*;
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
-import java.util.Calendar;
-import java.util.Date;
+import java.nio.*;
+import java.nio.charset.*;
+import java.util.*;
 
 /**
  * Various functions for loading, parsing and visualizing data.
@@ -41,9 +40,9 @@ class Tools
 	 * Parses a null-terminated string of up to {@code limit} bytes. The final
 	 * byte is not required to be a null character.
 	 *
-	 * @param buffer     Buffer to read from.
-	 * @param limit      Maximum string length.
-	 * @param charset    Charset to be used.
+	 * @param buffer  Buffer to read from.
+	 * @param limit   Maximum string length.
+	 * @param charset Charset to be used.
 	 *
 	 * @return Parsed string.
 	 */
@@ -71,9 +70,9 @@ class Tools
 	 * Parses a null-terminated string of up to {@code length} bytes and skips
 	 * any remaining bytes, such that {@code length} bytes are always read.
 	 *
-	 * @param buffer   Buffer to read from.
-	 * @param length   Maximum string length; also the number of bytes to read.
-	 * @param charset  Charset to be used.
+	 * @param buffer  Buffer to read from.
+	 * @param length  Maximum string length; also the number of bytes to read.
+	 * @param charset Charset to be used.
 	 *
 	 * @return Parsed string.
 	 */
@@ -129,13 +128,13 @@ class Tools
 		return calendar.getTime();
 	}
 
-	static Color parseColor(final ByteBuffer buffer)
+	static Color parseColor( final ByteBuffer buffer )
 	{
 		final int bgra = buffer.getInt();
 		final int rgb = ( bgra & 0x000000ff ) << 16 |
-		                 ( bgra & 0x0000ff00 ) |
-		                 ( bgra & 0x00ff0000 ) >> 16;
-		return new Color(rgb, false);
+		                ( bgra & 0x0000ff00 ) |
+		                ( bgra & 0x00ff0000 ) >> 16;
+		return new Color( rgb, false );
 	}
 
 	static long toLongBE( final byte[] data )
@@ -168,7 +167,7 @@ class Tools
 
 	static void histogram( final byte[] data, final int offset, final int length )
 	{
-		final int[] h = new int[256];
+		final int[] h = new int[ 256 ];
 		for ( int i = offset; i < offset + length; i++ )
 		{
 			final byte b = data[ i ];
@@ -178,45 +177,35 @@ class Tools
 		System.out.println( "total: " + length );
 		for ( int i = 0; i < h.length; i++ )
 		{
-			System.out.println( i + ":" + h[i] );
+			System.out.println( i + ":" + h[ i ] );
 		}
 	}
 
 	static byte[] loadResource( final Class<?> context, final String name )
 	throws IOException
 	{
-		final InputStream in = context.getResourceAsStream( name );
-		if ( in == null )
+		try ( final InputStream in = context.getResourceAsStream( name ) )
 		{
-			throw new FileNotFoundException( name + " (from " + context + ")" );
-		}
+			if ( in == null )
+			{
+				throw new FileNotFoundException( name + " (from " + context + ")" );
+			}
 
-		try
-		{
 			return load( in );
-		}
-		finally
-		{
-			in.close();
 		}
 	}
 
 	static byte[] loadResource( final Class<?> context, final String name, final int limit )
 	throws IOException
 	{
-		final InputStream in = context.getResourceAsStream( name );
-		if ( in == null )
+		try ( final InputStream in = context.getResourceAsStream( name ) )
 		{
-			throw new FileNotFoundException( name + " (from " + context + ")" );
-		}
+			if ( in == null )
+			{
+				throw new FileNotFoundException( name + " (from " + context + ")" );
+			}
 
-		try
-		{
 			return load( in, limit );
-		}
-		finally
-		{
-			in.close();
 		}
 	}
 
@@ -236,7 +225,6 @@ class Tools
 	throws IOException
 	{
 		final ByteArrayOutputStream out = new ByteArrayOutputStream();
-		final BufferedInputStream buffered = new BufferedInputStream( in );
 		for ( int i = 0; i < limit; i++ )
 		{
 			final int b = in.read();
@@ -267,7 +255,7 @@ class Tools
 		{
 			dumpHex( out, new ByteArrayInputStream( data, offset, length ), length );
 		}
-		catch ( IOException e )
+		catch ( final IOException e )
 		{
 			throw new RuntimeException( e );
 		}
@@ -323,7 +311,7 @@ class Tools
 				}
 			}
 			final byte b = data[ i ];
-			if ( b >= 0x20 && b <= 0x7f )
+			if ( b >= 0x20 )
 			{
 				buffer.append( (char)b );
 			}
@@ -344,7 +332,7 @@ class Tools
 			{
 				buffer.append( Character.forDigit( ( i / 100 ) % 10, 10 ) );
 				buffer.append( Character.forDigit( ( i / 10 ) % 10, 10 ) );
-				buffer.append( Character.forDigit( i % 10, 10 ) );
+				buffer.append( Character.forDigit( 0, 10 ) );
 			}
 			else
 			{
@@ -354,7 +342,7 @@ class Tools
 		out.println( buffer );
 	}
 
-	public static int indexOf( byte[] haystack, byte[] needle, int offset )
+	public static int indexOf( final byte[] haystack, final byte[] needle, final int offset )
 	{
 		for ( int i = offset; i < haystack.length - needle.length; i++ )
 		{
@@ -375,7 +363,7 @@ class Tools
 		return -1;
 	}
 
-	public static void dump( ByteBuffer buffer, int length )
+	public static void dump( final ByteBuffer buffer, final int length )
 	{
 		final int position = buffer.position();
 		final byte[] content = new byte[ length ];
@@ -384,5 +372,9 @@ class Tools
 		dumpHex( System.out, content, 0, length );
 		dumpAscii( System.out, content, 0, length );
 		buffer.position( position );
+	}
+
+	private Tools()
+	{
 	}
 }
