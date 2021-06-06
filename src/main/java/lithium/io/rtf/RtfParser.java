@@ -29,23 +29,37 @@ import lithium.io.*;
  */
 public class RtfParser
 {
-	private Reader _reader;
+	/**
+	 * Character stream to read from.
+	 */
+	private Reader _reader = null;
 
-	private int _next;
+	/**
+	 * Next character to parse.
+	 */
+	private int _next = -1;
 
-	private StringBuilder _builder = new StringBuilder();
+	/**
+	 * String builder that's re-used during parsing.
+	 */
+	private final StringBuilder _builder = new StringBuilder();
 
+	/**
+	 * Character set to use.
+	 */
 	private Charset _charset = Charset.forName( Config.charset );
 
 	/**
-	 * Constructs a new instance.
+	 * Parses an RTF document from the given stream.
+	 *
+	 * @param in Stream to read from.
+	 *
+	 * @return RTF document.
+	 *
+	 * @throws IOException if an I/O error occurs.
 	 */
-	public RtfParser()
-	{
-	}
-
 	public RtfGroup parse( final InputStream in )
-		throws IOException
+	throws IOException
 	{
 		final BufferedInputStream bin = new BufferedInputStream( in );
 		_charset = detectCharset( bin );
@@ -57,7 +71,7 @@ public class RtfParser
 	}
 
 	private RtfGroup parseGroup()
-		throws IOException
+	throws IOException
 	{
 		accept( '{' );
 		final RtfGroup result = new RtfGroup();
@@ -87,7 +101,7 @@ public class RtfParser
 	}
 
 	private TextNode parseText()
-		throws IOException
+	throws IOException
 	{
 		if ( _next == '\\' || _next == '}' || _next == '{' )
 		{
@@ -108,7 +122,7 @@ public class RtfParser
 	}
 
 	private RtfNode parseControlToken()
-		throws IOException
+	throws IOException
 	{
 		accept( '\\' );
 
@@ -137,18 +151,19 @@ public class RtfParser
 			final char symbol = (char)_next;
 			accept();
 
-			if (symbol == '\\' || symbol == '{' || symbol == '}') {
-				return new TextNode(Character.toString(symbol));
+			if ( symbol == '\\' || symbol == '{' || symbol == '}' )
+			{
+				return new TextNode( String.valueOf( symbol ) );
 			}
-
-			final ControlSymbol result = new ControlSymbol();
-			result.setSymbol( symbol );
-			return result;
+			else
+			{
+				return new ControlSymbol( symbol );
+			}
 		}
 	}
 
 	private ControlWord parseControlWord()
-		throws IOException
+	throws IOException
 	{
 		if ( _next < 'a' || _next > 'z' )
 		{
@@ -188,8 +203,8 @@ public class RtfParser
 		return result;
 	}
 
-	private void accept( int expected )
-		throws IOException
+	private void accept( final int expected )
+	throws IOException
 	{
 		if ( _next == -1 )
 		{
@@ -205,7 +220,7 @@ public class RtfParser
 	}
 
 	private void accept()
-		throws IOException
+	throws IOException
 	{
 		if ( _next == -1 )
 		{
@@ -216,11 +231,11 @@ public class RtfParser
 	}
 
 	private Charset detectCharset( final BufferedInputStream bin )
-		throws IOException
+	throws IOException
 	{
 		bin.mark( 1024 );
 
-		final InputStreamReader headerReader = new InputStreamReader(bin, Config.charset);
+		final InputStreamReader headerReader = new InputStreamReader( bin, Config.charset );
 		accept( headerReader, '{' );
 		accept( headerReader, '\\' );
 		accept( headerReader, 'r' );
@@ -251,7 +266,7 @@ public class RtfParser
 	}
 
 	private void accept( final Reader in, final int expected )
-		throws IOException
+	throws IOException
 	{
 		final int read = in.read();
 		if ( read != expected )
