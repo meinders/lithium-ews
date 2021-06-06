@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 Gerrit Meinders
+ * Copyright 2013-2021 Gerrit Meinders
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,10 +17,10 @@
 
 package lithium.io.rtf;
 
-import lithium.io.Config;
-
 import java.io.*;
-import java.nio.charset.Charset;
+import java.nio.charset.*;
+
+import lithium.io.*;
 
 /**
  * Parses RTF documents.
@@ -34,7 +34,8 @@ public class RtfParser
 	private int _next;
 
 	private StringBuilder _builder = new StringBuilder();
-	private Charset _charset = Charset.forName(Config.charset);
+
+	private Charset _charset = Charset.forName( Config.charset );
 
 	/**
 	 * Constructs a new instance.
@@ -115,21 +116,23 @@ public class RtfParser
 		{
 			return parseControlWord();
 		}
-		else if ( _next == '\'') {
+		else if ( _next == '\'' )
+		{
 			// Get hex code for special char
 			accept();
-			String hexCode = Character.toString((char) _next);
+			int asciiCode = Character.digit( _next, 16 );
 			accept();
-			hexCode += Character.toString((char) _next);
+			asciiCode = ( asciiCode << 4 ) |
+			            Character.digit( _next, 16 );
 			accept();
 
 			// Convert hex code to char with the correct charset encoding
-			int asciiCode = Integer.parseInt(hexCode, 16);
-			byte[] asciiBytes = {(byte) asciiCode};
-			String specialChar =new String(asciiBytes, _charset);
+			final byte[] asciiBytes = { (byte)asciiCode };
+			final String specialChar = new String( asciiBytes, _charset );
 
-			return new TextNode(specialChar);
-		} else
+			return new TextNode( specialChar );
+		}
+		else
 		{
 			final char symbol = (char)_next;
 			accept();
