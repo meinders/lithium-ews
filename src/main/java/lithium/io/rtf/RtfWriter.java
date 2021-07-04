@@ -17,7 +17,8 @@
 
 package lithium.io.rtf;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
 /**
  * Writes an RTF document to some implementation-dependent output.
@@ -62,7 +63,11 @@ public abstract class RtfWriter
 	{
 		try
 		{
-			write( text.getText() );
+			String escapedText = text.getText()
+					.replace("\\", "\\\\")
+					.replace("{", "\\{")
+					.replace("}", "\\}");
+			write(escapedText);
 		}
 		catch ( Exception e )
 		{
