@@ -20,13 +20,16 @@ package lithium.io.ews;
 import lithium.io.Config;
 import lithium.io.rtf.RtfGroup;
 import lithium.io.rtf.TextNode;
-import org.junit.*;
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 import java.awt.*;
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Test case for {@link EwsParser}.
@@ -186,6 +189,7 @@ public class TestEwsWriter
         // Write
         Schedule writeSchedule = new Schedule();
         writeSchedule.getEntries().add(TestUtils.createEntry("Leeg", "first sentence 1\n" +
+                                                                     "What {about} a seemingly control symbol: \\\n" +
                                                                      "next sentence has a special char: é\n"));
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -207,6 +211,7 @@ public class TestEwsWriter
         assertTrue("Expected text content1, but was: " + content1, content1 instanceof TextContent);
 
         assertEquals("first sentence 1\n" +
+                     "What {about} a seemingly control symbol: \\\n" +
                      "next sentence has a special char: é",
                      TestUtils.getTextFromContent((TextContent) content1).replace("\r", "").trim());
     }
