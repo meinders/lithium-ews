@@ -25,6 +25,7 @@ package lithium.io.ews;
 public class BinaryContent
         implements Content {
     private byte[] _bytes;
+    private boolean precededByZeros = true;
 
     /**
      * Constructs a new instance.
@@ -47,5 +48,15 @@ public class BinaryContent
     @Override
     public String toString() {
         return super.toString() + "[length=" + _bytes.length + "]";
+    }
+
+    public boolean isPrecededByZeros()
+    {
+        return precededByZeros;
+    }
+
+    public void setPrecededByZeros( final boolean precededByZeros )
+    {
+        this.precededByZeros = precededByZeros;
     }
 }
