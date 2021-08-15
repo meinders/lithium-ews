@@ -17,14 +17,14 @@
 
 package lithium.io.ews;
 
-import junit.framework.TestCase;
-import lithium.io.rtf.RtfWriter;
-
 import java.awt.*;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
+import java.io.*;
+import java.nio.*;
+import java.nio.charset.*;
 import java.util.List;
+
+import junit.framework.*;
+import lithium.io.rtf.*;
 
 /**
  * Test case for {@link EwsParser}.
@@ -240,5 +240,34 @@ public class TestEwsParser
         byte[] backgroundBytes = background.getImage().getBytes();
         assertEquals("C:\\Users\\samuel\\Downloads\\image1.jpg", background.getName());
         assertEquals(5884, backgroundBytes.length);
+    }
+
+    public void testReadFileWithPresentation() throws IOException {
+        // Given
+        final byte[] scheduleFile = Tools.loadResource( getClass(), "presentations/schedule_with_presentation_between_two_songs win 8.ews" );
+        final byte[] powerpointFile = Tools.loadResource( getClass(), "presentations/powerpoint_with_2_slides.pptx" );
+        final byte[] powerpointFileSlideImage1 = Tools.loadResource( getClass(), "presentations/powerpoint_with_2_slides_slide_1.jpg" );
+        final byte[] powerpointFileSlideImage2 = Tools.loadResource( getClass(), "presentations/powerpoint_with_2_slides_slide_2.jpg" );
+
+        // When
+        EwsParser parser = new EwsParser();
+        Schedule schedule = parser.parse( ByteBuffer.wrap( scheduleFile ) );
+
+        // Then
+        assertEquals( 3, schedule.getEntries().size() );
+        assertEquals( "10,000 Reasons (Bless the Lord)", schedule.getEntries().get( 0 ).getTitle() );
+        assertEquals( "powerpoint_with_2_slides.pptx", schedule.getEntries().get( 1 ).getTitle() );
+        assertEquals( "Be Thou my vision", schedule.getEntries().get( 2 ).getTitle() );
+
+        assertTrue( "Missing presentation content in schedule entry", schedule.getEntries().get( 1 ).getContent() instanceof BinaryContent );
+        assertEquals( powerpointFile.length, ( (BinaryContent)schedule.getEntries().get( 1 ).getContent() ).getBytes().length );
+
+        Presentation presentation = schedule.getEntries().get( 1 ).getPresentation();
+        assertNotNull( "Missing presentation attribute of schedule entry", presentation );
+        assertEquals( 35864, presentation.getMagicValue() );
+
+        assertEquals( 2, presentation.getSlides().size() );
+        assertEquals( powerpointFileSlideImage1.length, presentation.getSlides().get( 0 ).getContent().length );
+        assertEquals( powerpointFileSlideImage2.length, presentation.getSlides().get( 1 ).getContent().length );
     }
 }

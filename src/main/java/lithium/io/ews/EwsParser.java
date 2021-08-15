@@ -16,24 +16,17 @@
  */
 package lithium.io.ews;
 
-import lithium.io.Config;
-import lithium.io.rtf.RtfGroup;
-import lithium.io.rtf.RtfParser;
-
 import java.awt.*;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.charset.Charset;
-import java.util.Date;
+import java.io.*;
+import java.nio.*;
+import java.nio.charset.*;
 import java.util.List;
-import java.util.zip.Adler32;
-import java.util.zip.CheckedInputStream;
-import java.util.zip.Checksum;
-import java.util.zip.InflaterInputStream;
+import java.util.*;
+import java.util.zip.*;
 
+import lithium.io.*;
 import static lithium.io.ews.Tools.*;
+import lithium.io.rtf.*;
 
 /**
  * Reads schedules stored in the EWS file format.
@@ -42,7 +35,7 @@ import static lithium.io.ews.Tools.*;
  */
 public class EwsParser
 {
-	private Charset _charset = Charset.forName(Config.charset);
+	private Charset _charset = Charset.forName( Config.charset );
 
 	private int _index = 1;
 
@@ -65,6 +58,13 @@ public class EwsParser
 	{
 		buffer.order( ByteOrder.LITTLE_ENDIAN );
 
+		parseHeader( buffer );
+
+		return parseEntries( buffer );
+	}
+
+	private void parseHeader( final ByteBuffer buffer )
+	{
 		final String formatIdentifier = parsePaddedCString( buffer, 34, getCharset() );
 		if ( !formatIdentifier.startsWith( "EasyWorship Schedule File" ) )
 		{
@@ -89,7 +89,11 @@ public class EwsParser
 		{
 			throw new IllegalArgumentException( "Unsupported version: '" + versionString + "'" );
 		}
+	}
 
+	private Schedule parseEntries( final ByteBuffer buffer )
+	throws IOException
+	{
 		final int playlistEntryCount = buffer.getInt();
 		final int playlistEntryLength = (int)buffer.getShort();
 
@@ -142,8 +146,9 @@ public class EwsParser
 
 //		System.out.println( "Unknown (824)" );
 //		dump( buffer, 16 );
-		skip( buffer, 16 );
-
+//		skip( buffer, 16 );
+		skip( buffer, 12 );
+		boolean isPresentation = buffer.getInt() != 0;
 		final int presentationLength = buffer.getInt();
 
 //		System.out.println( "Font settings (844..851), containing unknowns (846..847)" );
@@ -366,10 +371,16 @@ public class EwsParser
 			System.err.println( "Unexpected value in presentation content: " + identifier );
 		}
 
-		final byte[] unknown = new byte[ headerLength - 20 ];
+		buffer.getInt();    // Skip; = 0x02
+		buffer.getInt();    // Skip
+		final int magicValue = buffer.getInt();
+
+		// Math: identifier = 16;  unknown = 8; magicValue = 4; slideCount = 4
+		final byte[] unknown = new byte[ headerLength - 16 - 8 - 4 - 4 ];
 		buffer.get( unknown );
 
 		final Presentation presentation = new Presentation();
+		presentation.setMagicValue( magicValue );
 		presentation.setUnknown( unknown );
 
 		final int slideCount = buffer.getInt();
@@ -441,7 +452,9 @@ public class EwsParser
 
 	private BinaryContent parseBinaryContent( final ScheduleEntry.Type type, final ByteBuffer buffer )
 	{
-		final int contentLength = buffer.getInt();
+		final BinaryContent result = new BinaryContent();
+
+		int contentLength = buffer.getInt();
 		if ( contentLength < 0 )
 		{
 			throw new IllegalArgumentException( "contentLength: " + contentLength );
@@ -457,6 +470,15 @@ public class EwsParser
 			if ( unknown != 0 )
 			{
 				System.err.println( "Unexpected embedded video content. Expected 0, but was " + unknown );
+
+				result.setPrecededByZeros( false );
+
+				// Maybe those bytes are important after all, so let's include them
+				buffer.position( buffer.position() - 4 );
+			}
+			else
+			{
+				result.setPrecededByZeros( true );
 			}
 		}
 
@@ -464,7 +486,6 @@ public class EwsParser
 		final byte[] content = new byte[ contentLength ];
 		buffer.get( content );
 
-		final BinaryContent result = new BinaryContent();
 		result.setBytes( content );
 		return result;
 	}

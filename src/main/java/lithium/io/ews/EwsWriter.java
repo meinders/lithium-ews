@@ -16,16 +16,15 @@
  */
 package lithium.io.ews;
 
-import lithium.io.Config;
-import lithium.io.rtf.RtfWriter;
-
 import java.awt.*;
 import java.io.*;
-import java.nio.charset.Charset;
-import java.util.Calendar;
-import java.util.Date;
+import java.nio.charset.*;
 import java.util.List;
-import java.util.zip.DeflaterOutputStream;
+import java.util.*;
+import java.util.zip.*;
+
+import lithium.io.*;
+import lithium.io.rtf.*;
 
 /**
  * Writes schedules in the EWS file format.
@@ -35,6 +34,7 @@ import java.util.zip.DeflaterOutputStream;
 public class EwsWriter
 {
     private static final int SCHEDULE_ENTRY_LENGTH = 1816;
+    private static final int SCHEDULE_ENTRY_PRESENTATION_HEADER_LENGTH = 48;
 
     private final OutputStream _out;
 
@@ -70,6 +70,7 @@ public class EwsWriter
             writeEntryInformation(entry, scheduleLength, cumulativeContentLength);
 
             cumulativeContentLength += getEntryContentLength(entry);
+            cumulativeContentLength += getPresentationLength(entry);
             cumulativeContentLength += getBackgroundContentLength(entry);
             cumulativeContentLength += getMediaContentLength(entry);
         }
@@ -77,7 +78,12 @@ public class EwsWriter
         // Add content
         for (final ScheduleEntry entry : entries) {
             writeContentForEntry(entry);
-            writeBackgroundForEntry(entry);
+
+            if ( entry.getType() == ScheduleEntry.Type.PRESENTATION ) {
+                writePresentationForEntry( entry);
+            }
+
+            writeBackgroundMediaForEntry( entry);
             writeMediaForEntry(entry);
         }
     }
@@ -110,9 +116,16 @@ public class EwsWriter
 
         writeZeroes(16);    // Skip
         writeInt(parseEntryType(entry.getType()));  // Entry type
-        writeZeroes(15);    // Skip
-        _out.write(ScheduleEntry.Type.PRESENTATION.equals(entry.getType()) ? 1 : 0);          // isPresentation
-        writeInt(0);            // presentationLength
+
+        writeZeroes(4);    // Skip
+	    final int presentationMagicValue = entry.getPresentation() != null
+	                                       ? entry.getPresentation().getMagicValue()
+	                                       : 0;
+	    writeInt( presentationMagicValue );
+        writeZeroes(4);    // Skip
+        writeInt( entry.getType() == ScheduleEntry.Type.PRESENTATION ? 1 : 0 );          // isPresentation
+        writeInt( getPresentationLength( entry ));            // presentationLength
+
         _out.write(0);          // customFontSettings
         _out.write(1);          // fontSizeAutomatic
         _out.write(0);          // Skip
@@ -145,27 +158,17 @@ public class EwsWriter
         _out.write(0);    // skip
         _out.write(0);    // media embedded
         writeZeroes(57);        // skip
-        writeInt(0);                // originalResourceLength
+
+        final int originalResourceLength = getOriginalResourceLength( entry );
+        writeInt(originalResourceLength);
         writeZeroes(12);        // skip
 
-        int mediaContentPointer = 0;
-        if (entry.getBackground() instanceof VideoBackground) {
-            int contentLength = getEntryContentLength(entry) + getBackgroundContentLength(entry);
-            mediaContentPointer = contentPointer + contentLength;
-        }
-        writeInt(mediaContentPointer);  // mediaContentPointer
+        final int mediaContentPointer = getMediaContentPointer( entry, contentPointer );
+        writeInt(mediaContentPointer);
 
         writeZeroes(20);    // skip
 
-        // aspectRatio
-        ScheduleEntry.AspectRatio aspectRatio = ScheduleEntry.AspectRatio.STRETCH;
-        if (entry.getBackground() instanceof ImageBackground) {
-            aspectRatio = ((ImageBackground) entry.getBackground()).getAspectRatio();
-        } else if (entry.getBackground() instanceof LiveVideoBackground) {
-            aspectRatio = ((LiveVideoBackground) entry.getBackground()).getAspectRatio();
-        } else if (entry.getBackground() instanceof VideoBackground) {
-            aspectRatio = ((VideoBackground) entry.getBackground()).getAspectRatio();
-        }
+        final ScheduleEntry.AspectRatio aspectRatio = getAspectRatio( entry );
         writeInt(parseAspectRatio(aspectRatio));
         writeZeroes(292);    // skip
     }
@@ -217,7 +220,7 @@ public class EwsWriter
             defaultBackground = true;
         }
 
-        _out.write(0x01);    // skip
+        _out.write( entry.getType() == ScheduleEntry.Type.PRESENTATION ? 0 : 1);    // Is background set
         _out.write(defaultBackground ? 1 : 0);
         writeInt(parseBackgroundType(backgroundType));
         writeInt(parseColor(backgroundColor));
@@ -229,6 +232,37 @@ public class EwsWriter
         _out.write(0x00);    // skip
         _out.write(0x00);    // skip
         writePaddedString(backgroundName, 256);
+    }
+
+    private int getOriginalResourceLength( final ScheduleEntry entry )
+    {
+        if ( entry.getType() == ScheduleEntry.Type.PRESENTATION) {
+            return ((BinaryContent) entry.getContent()).getBytes().length;
+        }
+        return 0;
+    }
+
+    private int getMediaContentPointer( final ScheduleEntry entry, final int contentPointer )
+            throws IOException {
+        if ( entry.getBackground() instanceof VideoBackground) {
+            final int contentLength = getEntryContentLength( entry ) + getBackgroundContentLength( entry );
+            return contentPointer + contentLength;
+        } else if ( entry.getType() == ScheduleEntry.Type.PRESENTATION) {
+            return contentPointer;
+        }
+        return 0;
+    }
+
+    private ScheduleEntry.AspectRatio getAspectRatio( final ScheduleEntry entry )
+    {
+        if ( entry.getBackground() instanceof ImageBackground) {
+            return ((ImageBackground) entry.getBackground()).getAspectRatio();
+        } else if ( entry.getBackground() instanceof LiveVideoBackground) {
+            return ((LiveVideoBackground) entry.getBackground()).getAspectRatio();
+        } else if ( entry.getBackground() instanceof VideoBackground) {
+            return ((VideoBackground) entry.getBackground()).getAspectRatio();
+        }
+        return ScheduleEntry.AspectRatio.STRETCH;
     }
 
     private int getEntryContentLength(ScheduleEntry entry) throws IOException {
@@ -245,7 +279,7 @@ public class EwsWriter
         } else if (content instanceof BinaryContent) {
             final BinaryContent binaryContent = (BinaryContent) content;
             final byte[] bytes = binaryContent.getBytes();
-            return bytes.length + 4;
+            return bytes.length + 4 + (binaryContent.isPrecededByZeros() ? 4 : 0);
         } else if (content != null) {
             throw new IllegalArgumentException("Unsupported content: " + content);
         }
@@ -269,6 +303,23 @@ public class EwsWriter
             return 4 + 4 + bytes.length;    // Some types have 4 additional zero bytes. Don't know why.
         }
         return 0;
+    }
+
+    private int getPresentationLength( final ScheduleEntry entry) {
+        if ( entry.getType() != ScheduleEntry.Type.PRESENTATION
+             || entry.getPresentation() == null) {
+            return 0;
+        }
+
+        final int headerLength = 4 + SCHEDULE_ENTRY_PRESENTATION_HEADER_LENGTH;
+        final int slidesLength = entry.getPresentation().getSlides().size() * 16;
+        final int slidesContentLength = entry.getPresentation()
+                                             .getSlides()
+                                             .stream()
+                                             // Math: 1 = unknown bit; 4 = content length
+                                             .map( it -> 1 + 4 + it.getContent().length )
+                                             .reduce( 0, Integer::sum );
+        return headerLength + slidesLength + slidesContentLength;
     }
 
     private void writeContentForEntry(ScheduleEntry entry) throws IOException {
@@ -296,13 +347,16 @@ public class EwsWriter
             final BinaryContent binaryContent = (BinaryContent) content;
             final byte[] bytes = binaryContent.getBytes();
             writeInt(bytes.length);
+            if (binaryContent.isPrecededByZeros()) {
+                writeInt( 0 );
+            }
             _out.write(bytes);
         } else if (content != null) {
             throw new IllegalArgumentException("Unsupported content: " + content);
         }
     }
 
-    private void writeBackgroundForEntry(ScheduleEntry entry) throws IOException {
+    private void writeBackgroundMediaForEntry( ScheduleEntry entry) throws IOException {
         if (entry.getBackground() instanceof ImageBackground) {
             final byte[] bytes = ((ImageBackground) entry.getBackground()).getImage().getBytes();
             writeInt(bytes.length); // length
@@ -321,6 +375,62 @@ public class EwsWriter
             writeZeroes(4);     // Some types have 4 additional zero bytes. Don't know why.
             _out.write(bytes);      // data
         }
+    }
+
+    private void writePresentationForEntry( final ScheduleEntry entry ) throws IOException {
+        if (entry.getPresentation() == null) {
+            return;
+        }
+
+	    writePresentationHeaderForEntry( entry );
+	    writeSlidesForEntry(entry);
+    }
+
+	private void writePresentationHeaderForEntry( final ScheduleEntry entry )
+			throws IOException {
+		writeInt( SCHEDULE_ENTRY_PRESENTATION_HEADER_LENGTH );   // Length of the following header
+		writePaddedString( "$ezwppstream$", 16 );   // Identifier
+		_out.write( 0x02 );
+		writeZeroes( 7 );
+		writeInt( entry.getPresentation().getMagicValue());
+
+        // Math: identifier = 16; 0x02 = 1; unknown = 7; magicValue = 4; 2x slideCount = 2x4
+		writeZeroes( SCHEDULE_ENTRY_PRESENTATION_HEADER_LENGTH - 16 - 1 - 7 - 4 - 8 );
+
+		writeInt( entry.getPresentation().getSlides().size() );
+		writeInt( entry.getPresentation().getSlides().size() );
+	}
+
+	private void writeSlidesForEntry( final ScheduleEntry entry )
+            throws IOException {
+        // Start contentPointer relative to the start of the presentation header
+        // Math: 4 = headerLength value
+        int contentPointer = 4 + SCHEDULE_ENTRY_PRESENTATION_HEADER_LENGTH
+                             + entry.getPresentation().getSlides().size() * 16;
+
+		for ( final Slide slide : entry.getPresentation().getSlides()) {
+            writeSlide( slide, contentPointer );
+
+            // Math: 1 = 0x01; 4 = contentLength value
+            contentPointer += 1 + 4 + slide.getContent().length;
+		}
+
+		for ( final Slide slide : entry.getPresentation().getSlides()) {
+            writeSlideContentForSlide( slide );
+		}
+	}
+
+    private void writeSlide( final Slide slide, final int contentPointer )
+            throws IOException {
+        writeInt( contentPointer );
+        _out.write( slide.getUnknown() );
+    }
+
+    private void writeSlideContentForSlide( final Slide slide )
+            throws IOException {
+	    _out.write( 1 );
+	    writeInt( slide.getContent().length );
+    	_out.write( slide.getContent() );
     }
 
     private void writeZeroes(final int count)

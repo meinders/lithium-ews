@@ -17,8 +17,10 @@
 
 package lithium.io.rtf;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.io.*;
+import java.util.*;
+
+import lithium.io.*;
 
 /**
  * Writes an RTF document to some implementation-dependent output.
@@ -28,6 +30,9 @@ import java.io.IOException;
 public abstract class RtfWriter
 	implements RtfVisitor
 {
+
+	private final List<Byte> _rtfReservedChars = Arrays.asList( new Byte[] { '\\', '{', '}' } );
+
 	/**
 	 * Constructs a new instance.
 	 */
@@ -63,16 +68,44 @@ public abstract class RtfWriter
 	{
 		try
 		{
-			String escapedText = text.getText()
-					.replace("\\", "\\\\")
-					.replace("{", "\\{")
-					.replace("}", "\\}");
-			write(escapedText);
+			final String escapedText = escapeText( text.getText() );
+			write( escapedText );
 		}
 		catch ( Exception e )
 		{
 			throw new RuntimeException( e );
 		}
+	}
+
+	/**
+	 * Escapes/decodes special/reserved characters from plain text to RTF ready text.
+	 */
+	private String escapeText( final String text )
+	throws UnsupportedEncodingException
+	{
+		final StringBuilder result = new StringBuilder();
+
+		final byte[] bytes = text.getBytes( Config.charset );
+		for ( final byte c : bytes )
+		{
+			if ( c >= 0 )
+			{
+				if ( _rtfReservedChars.contains( c ) )
+				{
+					result.append( '\\' );
+				}
+				result.append( (char)c );
+			}
+			else
+			{
+				// Special character
+				final String hexValue = Integer.toHexString( c ).substring( 6 );
+				result.append( '\\' );
+				result.append( '\'' );
+				result.append( hexValue );
+			}
+		}
+		return result.toString();
 	}
 
 	@Override

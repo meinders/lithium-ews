@@ -267,11 +267,11 @@ In addition to the presentation itself, which is stored as binary contents
     Offset  Field              Data type    Length    Details
     ------------------------------------------------------------------------------------------------
          0  Length             int32le           4    Length of this header
-         4  Identifier         string           13    "$ezwppstream$"
+         4  Identifier         string           16    "$ezwppstream$"
                                                       EasyWorship PowerPoint stream? Trendy.
         20  (unknown)                            1    0x02
         28  (unknown)                            4    Same value as schedule entry at offset 828 and 1480.
-                                                      Observed values: 0xea00, 0x9600, 0x11c00
+                                                      Observed values: 0xea00, 0x9600, 0x11c00, 0x5e9fd1
         44  Number of slides   int32le           4    Number of slides in the presentation.
         48  Number of slides   int32le           4    (Again, but this time as part of the following list, I assume.)
         52  Slides                                    List of slides (see below).

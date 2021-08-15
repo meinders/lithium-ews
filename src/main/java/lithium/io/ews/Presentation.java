@@ -34,6 +34,8 @@ public class Presentation
 	 */
 	private byte[] _unknown;
 
+	private int magicValue = 0;
+
 	/**
 	 * Constructs a new instance.
 	 */
@@ -59,5 +61,15 @@ public class Presentation
 	public byte[] getUnknown()
 	{
 		return _unknown;
+	}
+
+	public int getMagicValue()
+	{
+		return magicValue;
+	}
+
+	public void setMagicValue( final int magicValue )
+	{
+		this.magicValue = magicValue;
 	}
 }
